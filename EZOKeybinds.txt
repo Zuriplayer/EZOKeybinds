@@ -6,6 +6,6 @@
 ## Author: @Zuriplayer
 ## Version: 1.0.1
 ## AddOnVersion: 10001
-## APIVersion: 101049
+## APIVersion: 101049 101050
 
 EZOKeybinds.lua

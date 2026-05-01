@@ -49,6 +49,11 @@ local function EnableChording()
         return true
     end
 
+    if TryEnableOn(KEYBOARD_KEYBINDING_MANAGER, "KEYBOARD_KEYBINDING_MANAGER") then
+        EZOKeybinds._enabled = true
+        return true
+    end
+
     if TryEnableOn(KEYBINDING_MANAGER, "KEYBINDING_MANAGER") then
         EZOKeybinds._enabled = true
         return true
