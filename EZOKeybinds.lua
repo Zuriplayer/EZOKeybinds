@@ -2,8 +2,8 @@ EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
 
 EZOKeybinds.name = "EZOKeybinds"
-EZOKeybinds.version = "1.0.4"
-EZOKeybinds.addOnVersion = 10004
+EZOKeybinds.version = "1.0.5"
+EZOKeybinds.addOnVersion = 10005
 EZOKeybinds._enabled = false
 EZOKeybinds._retrying = false
 EZOKeybinds._logger = nil
@@ -12,6 +12,7 @@ local EVENT_MANAGER = EVENT_MANAGER
 local zo_callLater = zo_callLater
 local GetString = GetString
 local CHAT_SYSTEM = CHAT_SYSTEM
+local string_format = string.format
 local table_concat = table.concat
 local table_insert = table.insert
 local tostring = tostring
@@ -198,6 +199,13 @@ local function SameBinding(aKey, aMod1, aMod2, aMod3, aMod4, bKey, bMod1, bMod2,
     return aKey == bKey and aMod1 == bMod1 and aMod2 == bMod2 and aMod3 == bMod3 and aMod4 == bMod4
 end
 
+local function IsNativeGamepadCombo(key, gamepadKeyNames)
+    local keyName = gamepadKeyNames[key]
+
+    return keyName
+        and (keyName:match("_BOTH_") or keyName:match("_THEN_") or keyName:match("_HOLD") or keyName:match("_SWIPE_"))
+end
+
 local function DebugScanGamepadBindings()
     local logger = GetLogger()
 
@@ -210,20 +218,18 @@ local function DebugScanGamepadBindings()
     local maxBindings = GetMaxBindingsPerAction()
     local currentCount = 0
     local defaultCount = 0
-    local emittedCount = 0
-
-    logger:Debug("=== EZOKeybinds debug scan: gamepad bindings ===")
-    logger:Debug("Version=%s AddOnVersion=%s GamepadKeyCodes=%d", EZOKeybinds.version, tostring(EZOKeybinds.addOnVersion), #GAMEPAD_KEYS)
+    local interestingCount = 0
+    local entries = {}
 
     -- Ricardo: esto no toca binds. Solo fotografia lo que ESO ya tiene en memoria.
     for layerIndex = 1, GetNumActionLayers() do
-        local layerName, numCategories = GetActionLayerInfo(layerIndex)
+        local _, numCategories = GetActionLayerInfo(layerIndex)
 
         for categoryIndex = 1, numCategories do
-            local categoryName, numActions = GetActionLayerCategoryInfo(layerIndex, categoryIndex)
+            local _, numActions = GetActionLayerCategoryInfo(layerIndex, categoryIndex)
 
             for actionIndex = 1, numActions do
-                local actionName, isRebindable, isHidden = GetActionInfo(layerIndex, categoryIndex, actionIndex)
+                local actionName, _, isHidden = GetActionInfo(layerIndex, categoryIndex, actionIndex)
 
                 if actionName and not isHidden then
                     local actionLabel = GetActionLabel(actionName)
@@ -236,26 +242,24 @@ local function DebugScanGamepadBindings()
 
                         if hasCurrentGamepad or hasDefaultGamepad then
                             local status = SameBinding(key, mod1, mod2, mod3, mod4, defaultKey, defaultMod1, defaultMod2, defaultMod3, defaultMod4) and "default" or "custom"
+                            local isInteresting = status == "custom"
+                                or IsNativeGamepadCombo(key, gamepadKeyNames)
+                                or IsNativeGamepadCombo(defaultKey, gamepadKeyNames)
 
                             if hasCurrentGamepad then currentCount = currentCount + 1 end
                             if hasDefaultGamepad then defaultCount = defaultCount + 1 end
-                            emittedCount = emittedCount + 1
 
-                            logger:Debug(
-                                "[%s] layer=%d:%s category=%d:%s action=%d:%s (%s) slot=%d rebindable=%s current=%s default=%s",
-                                status,
-                                layerIndex,
-                                tostring(layerName),
-                                categoryIndex,
-                                tostring(categoryName),
-                                actionIndex,
-                                actionName,
-                                actionLabel,
-                                bindingIndex,
-                                tostring(isRebindable),
-                                FormatBinding(key, mod1, mod2, mod3, mod4, gamepadKeyNames),
-                                FormatBinding(defaultKey, defaultMod1, defaultMod2, defaultMod3, defaultMod4, gamepadKeyNames)
-                            )
+                            if isInteresting then
+                                interestingCount = interestingCount + 1
+                                table_insert(entries, string_format(
+                                    "%s | %s | slot %d | current=%s | default=%s",
+                                    status,
+                                    actionLabel,
+                                    bindingIndex,
+                                    FormatBinding(key, mod1, mod2, mod3, mod4, gamepadKeyNames),
+                                    FormatBinding(defaultKey, defaultMod1, defaultMod2, defaultMod3, defaultMod4, gamepadKeyNames)
+                                ))
+                            end
                         end
                     end
                 end
@@ -263,7 +267,16 @@ local function DebugScanGamepadBindings()
         end
     end
 
-    logger:Debug("Summary: emitted=%d currentGamepad=%d defaultGamepad=%d", emittedCount, currentCount, defaultCount)
+    logger:Debug(
+        "EZOKeybinds gamepad scan | version=%s addonVersion=%s | nativeKeys=%d | currentGamepad=%d | defaultGamepad=%d | listed=%d\n%s",
+        EZOKeybinds.version,
+        tostring(EZOKeybinds.addOnVersion),
+        #GAMEPAD_KEYS,
+        currentCount,
+        defaultCount,
+        interestingCount,
+        table_concat(entries, "\n")
+    )
     PrintChat(SI_EZOKEYBINDS_DEBUG_SCAN_STARTED)
 end
 
