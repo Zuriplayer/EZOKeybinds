@@ -18,6 +18,8 @@ local function TryEnableOn(manager)
         return false
     end
 
+    -- Ricardo: no forzamos una unica ruta. En cliente real esta parte ha cambiado
+    -- entre versiones, asi que usamos primero la API moderna y luego la compatible.
     if type(manager.SetChordingAlwaysEnabled) == "function" then
         manager:SetChordingAlwaysEnabled(true)
         return true
@@ -38,8 +40,8 @@ local function EnableChording()
 
     local enabled = false
 
-    -- Ricardo: algunos clientes exponen el control del dialogo y el manager general
-    -- por rutas distintas. Tocamos todas las que existan y no paramos en el primer OK.
+    -- Ricardo: algunos clientes exponen el dialogo y el manager general por rutas
+    -- distintas. Tocamos todas las que existan y no paramos en el primer OK.
     enabled = TryEnableOn(KEYBINDINGS_MANAGER) or enabled
     enabled = TryEnableOn(KEYBINDING_MANAGER) or enabled
 

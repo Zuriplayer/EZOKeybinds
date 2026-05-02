@@ -16,7 +16,7 @@ Validar en cliente real:
 - En PTS, revisar si el cliente acepta `APIVersion` 101050 sin marcar el addon como obsoleto.
 - Para diagnostico o coordinacion de bindings de la familia EZO, usar `EZOBindings`.
 
-## Relacion Con EZOBindings
+## Relacion con EZOBindings
 
 `EZOKeybinds` solo habilita la capacidad nativa de chording del cliente.
 
@@ -30,4 +30,6 @@ La referencia tecnica principal para APIs de ESO es UESP ESO Data:
 
 https://esodata.uesp.net/current/index.html
 
-En la revision actual, UESP `current` publica API 101047, por detras del manifest del addon (`101049 101050`). Por ese motivo, el addon usa solo la ruta confirmada por UESP para esta funcionalidad: `KEYBINDING_MANAGER:SetChordingAlwaysEnabled(true)`.
+En la revision actual, UESP `current` publica API 101047, por detras del manifest del addon (`101049 101050`). UESP confirma el manager nativo de keybindings y la funcion de chording, pero la prueba real en cliente ha mostrado diferencias de exposicion entre rutas del manager.
+
+Por compatibilidad, el addon intenta activar chording sobre los managers que existan en tiempo de ejecucion (`KEYBINDINGS_MANAGER` y `KEYBINDING_MANAGER`) y acepta el metodo moderno `SetChordingAlwaysEnabled` o el metodo compatible `SetChordingEnabled` si esta presente. Todas las llamadas estan protegidas por comprobacion de tipo y no se crean bindings, comandos ni datos persistentes.
