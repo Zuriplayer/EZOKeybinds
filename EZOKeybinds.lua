@@ -18,8 +18,8 @@ local function TryEnableOn(manager)
         return false
     end
 
-    -- Ricardo: no forzamos una unica ruta. En cliente real esta parte ha cambiado
-    -- entre versiones, asi que usamos primero la API moderna y luego la compatible.
+    -- No conviene depender de una sola ruta. En cliente real esta parte ha
+    -- cambiado entre versiones, asi que probamos la API nueva y la compatible.
     if type(manager.SetChordingAlwaysEnabled) == "function" then
         manager:SetChordingAlwaysEnabled(true)
         return true
@@ -40,8 +40,8 @@ local function EnableChording()
 
     local enabled = false
 
-    -- Ricardo: algunos clientes exponen el dialogo y el manager general por rutas
-    -- distintas. Tocamos todas las que existan y no paramos en el primer OK.
+    -- Algunos clientes exponen el dialogo y el manager general por rutas
+    -- distintas. Probamos todas las disponibles y dejamos que ESO decida.
     enabled = TryEnableOn(KEYBINDINGS_MANAGER) or enabled
     enabled = TryEnableOn(KEYBINDING_MANAGER) or enabled
 
@@ -65,8 +65,8 @@ local function ScheduleRetry(delayIndex)
         return
     end
 
-    -- ESO carga algunos managers mas tarde segun cliente, idioma y modo de entrada.
-    -- Reintentamos en silencio para no molestar al jugador durante pruebas reales.
+    -- A veces ESO termina de preparar estos managers un poco mas tarde.
+    -- Reintentamos en silencio para no llenar el chat ni molestar al jugador.
     zo_callLater(function()
         if not EnableChording() then
             ScheduleRetry(delayIndex + 1)

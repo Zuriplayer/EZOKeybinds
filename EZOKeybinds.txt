@@ -1,5 +1,5 @@
 # EZOKeybinds manifest
-# IMPORTANT: Update APIVersion here when ESO updates.
+# Revisar APIVersion cuando ESO publique una version nueva.
 
 ## Title: E|cB040FFZ|rOKeybinds
 ## Description: Enables native keybinding chording in ESO, allowing modifier combinations (Ctrl, Alt, Shift, Command) to be assigned directly from the Controls menu to any existing bindable action without additional configuration.
