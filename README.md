@@ -14,6 +14,7 @@ Validar en cliente real:
 - En gamepad, no cambia navegacion, controles ni binds.
 - Tras `/reloadui`, las combinaciones siguen disponibles.
 - En PTS, revisar si el cliente acepta `APIVersion` 101050 sin marcar el addon como obsoleto.
+- Con LibDebugLogger y DebugLogViewer activos, `/ezokb debug scan` vuelca los bindings de gamepad en nivel `debug` y solo muestra un aviso corto en chat.
 
 ## Compatibilidad
 
