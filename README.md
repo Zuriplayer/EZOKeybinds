@@ -14,7 +14,15 @@ Validar en cliente real:
 - En gamepad, no cambia navegacion, controles ni binds.
 - Tras `/reloadui`, las combinaciones siguen disponibles.
 - En PTS, revisar si el cliente acepta `APIVersion` 101050 sin marcar el addon como obsoleto.
-- Con LibDebugLogger y DebugLogViewer activos, `/ezokb debug scan` vuelca los bindings de gamepad en nivel `debug` y solo muestra un aviso corto en chat.
+- Para diagnostico o coordinacion de bindings de la familia EZO, usar `EZOBindings`.
+
+## Relacion Con EZOBindings
+
+`EZOKeybinds` solo habilita la capacidad nativa de chording del cliente.
+
+`EZOBindings` se encarga del registro, snapshot y diagnostico de bindings para otros addons EZO.
+
+Mantener estas responsabilidades separadas evita que este addon toque input, comandos, SavedVariables o politicas de asignacion.
 
 ## Compatibilidad
 
