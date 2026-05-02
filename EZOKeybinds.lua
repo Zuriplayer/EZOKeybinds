@@ -2,8 +2,8 @@ EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
 
 EZOKeybinds.name = "EZOKeybinds"
-EZOKeybinds.version = "1.0.3"
-EZOKeybinds.addOnVersion = 10003
+EZOKeybinds.version = "1.0.4"
+EZOKeybinds.addOnVersion = 10004
 EZOKeybinds._enabled = false
 EZOKeybinds._retrying = false
 EZOKeybinds._logger = nil
@@ -14,12 +14,80 @@ local GetString = GetString
 local CHAT_SYSTEM = CHAT_SYSTEM
 local table_concat = table.concat
 local table_insert = table.insert
-local table_sort = table.sort
 local tostring = tostring
 local type = type
-local pairs = pairs
 
 local RETRY_DELAYS_MS = { 500, 1500, 3000 }
+local GAMEPAD_KEYS = {
+    "KEY_GAMEPAD_DPAD_UP",
+    "KEY_GAMEPAD_DPAD_DOWN",
+    "KEY_GAMEPAD_DPAD_LEFT",
+    "KEY_GAMEPAD_DPAD_RIGHT",
+    "KEY_GAMEPAD_START",
+    "KEY_GAMEPAD_BACK",
+    "KEY_GAMEPAD_LEFT_STICK",
+    "KEY_GAMEPAD_RIGHT_STICK",
+    "KEY_GAMEPAD_LEFT_SHOULDER",
+    "KEY_GAMEPAD_RIGHT_SHOULDER",
+    "KEY_GAMEPAD_BUTTON_1",
+    "KEY_GAMEPAD_BUTTON_2",
+    "KEY_GAMEPAD_BUTTON_3",
+    "KEY_GAMEPAD_BUTTON_4",
+    "KEY_GAMEPAD_LEFT_TRIGGER",
+    "KEY_GAMEPAD_RIGHT_TRIGGER",
+    "KEY_GAMEPAD_LSTICK_UP",
+    "KEY_GAMEPAD_LSTICK_DOWN",
+    "KEY_GAMEPAD_LSTICK_LEFT",
+    "KEY_GAMEPAD_LSTICK_RIGHT",
+    "KEY_GAMEPAD_RSTICK_UP",
+    "KEY_GAMEPAD_RSTICK_DOWN",
+    "KEY_GAMEPAD_RSTICK_LEFT",
+    "KEY_GAMEPAD_RSTICK_RIGHT",
+    "KEY_GAMEPAD_BOTH_SHOULDERS",
+    "KEY_GAMEPAD_LEFT_TRIGGER_THEN_RIGHT_TRIGGER",
+    "KEY_GAMEPAD_BOTH_STICKS",
+    "KEY_GAMEPAD_BOTH_RIGHT_SHOULDER_BUTTON_1",
+    "KEY_GAMEPAD_BOTH_RIGHT_SHOULDER_BUTTON_2",
+    "KEY_GAMEPAD_BOTH_RIGHT_SHOULDER_BUTTON_3",
+    "KEY_GAMEPAD_BOTH_RIGHT_SHOULDER_BUTTON_4",
+    "KEY_GAMEPAD_BOTH_LEFT_SHOULDER_BUTTON_1",
+    "KEY_GAMEPAD_BOTH_LEFT_SHOULDER_BUTTON_2",
+    "KEY_GAMEPAD_BOTH_LEFT_SHOULDER_BUTTON_3",
+    "KEY_GAMEPAD_BOTH_LEFT_SHOULDER_BUTTON_4",
+    "KEY_GAMEPAD_BOTH_LEFT_SHOULDER_LEFT_STICK",
+    "KEY_GAMEPAD_BOTH_LEFT_SHOULDER_RIGHT_STICK",
+    "KEY_GAMEPAD_BOTH_LEFT_SHOULDER_DPAD_LEFT",
+    "KEY_GAMEPAD_BOTH_LEFT_TRIGGER_BUTTON_1",
+    "KEY_GAMEPAD_BOTH_BUTTON_2_BUTTON_4",
+    "KEY_GAMEPAD_BOTH_BUTTON_2_BUTTON_3",
+    "KEY_GAMEPAD_BOTH_BUTTON_1_BUTTON_4",
+    "KEY_GAMEPAD_BOTH_BACK_START",
+    "KEY_GAMEPAD_BOTH_TOUCHPAD_START",
+    "KEY_GAMEPAD_BOTH_DPAD_RIGHT_BUTTON_2",
+    "KEY_GAMEPAD_LEFT_SHOULDER_HOLD",
+    "KEY_GAMEPAD_RIGHT_SHOULDER_HOLD",
+    "KEY_GAMEPAD_BUTTON_1_HOLD",
+    "KEY_GAMEPAD_BUTTON_2_HOLD",
+    "KEY_GAMEPAD_BUTTON_3_HOLD",
+    "KEY_GAMEPAD_BUTTON_4_HOLD",
+    "KEY_GAMEPAD_LEFT_TRIGGER_HOLD",
+    "KEY_GAMEPAD_RIGHT_TRIGGER_HOLD",
+    "KEY_GAMEPAD_DPAD_UP_HOLD",
+    "KEY_GAMEPAD_DPAD_DOWN_HOLD",
+    "KEY_GAMEPAD_DPAD_LEFT_HOLD",
+    "KEY_GAMEPAD_DPAD_RIGHT_HOLD",
+    "KEY_GAMEPAD_START_HOLD",
+    "KEY_GAMEPAD_BACK_HOLD",
+    "KEY_GAMEPAD_LEFT_STICK_HOLD",
+    "KEY_GAMEPAD_RIGHT_STICK_HOLD",
+    "KEY_GAMEPAD_TOUCHPAD_HOLD",
+    "KEY_GAMEPAD_TOUCHPAD_TOUCHED",
+    "KEY_GAMEPAD_TOUCHPAD_PRESSED",
+    "KEY_GAMEPAD_TOUCHPAD_SWIPE_UP",
+    "KEY_GAMEPAD_TOUCHPAD_SWIPE_DOWN",
+    "KEY_GAMEPAD_TOUCHPAD_SWIPE_LEFT",
+    "KEY_GAMEPAD_TOUCHPAD_SWIPE_RIGHT",
+}
 
 local function TryEnableOn(manager)
     if type(manager) ~= "table" then
@@ -64,17 +132,17 @@ end
 
 local function BuildGamepadKeyNames()
     local namesByCode = {}
-    local sortedCodes = {}
 
-    for name, value in pairs(_G) do
-        if type(name) == "string" and type(value) == "number" and name:match("^KEY_GAMEPAD_") then
+    for index = 1, #GAMEPAD_KEYS do
+        local name = GAMEPAD_KEYS[index]
+        local value = _G[name]
+
+        if type(value) == "number" then
             namesByCode[value] = name
-            table_insert(sortedCodes, value)
         end
     end
 
-    table_sort(sortedCodes)
-    return namesByCode, sortedCodes
+    return namesByCode
 end
 
 local function IsValidKey(key)
@@ -138,14 +206,14 @@ local function DebugScanGamepadBindings()
         return
     end
 
-    local gamepadKeyNames, sortedGamepadCodes = BuildGamepadKeyNames()
+    local gamepadKeyNames = BuildGamepadKeyNames()
     local maxBindings = GetMaxBindingsPerAction()
     local currentCount = 0
     local defaultCount = 0
     local emittedCount = 0
 
     logger:Debug("=== EZOKeybinds debug scan: gamepad bindings ===")
-    logger:Debug("Version=%s AddOnVersion=%s GamepadKeyCodes=%d", EZOKeybinds.version, tostring(EZOKeybinds.addOnVersion), #sortedGamepadCodes)
+    logger:Debug("Version=%s AddOnVersion=%s GamepadKeyCodes=%d", EZOKeybinds.version, tostring(EZOKeybinds.addOnVersion), #GAMEPAD_KEYS)
 
     -- Ricardo: esto no toca binds. Solo fotografia lo que ESO ya tiene en memoria.
     for layerIndex = 1, GetNumActionLayers() do
