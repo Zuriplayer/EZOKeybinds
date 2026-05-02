@@ -2,8 +2,8 @@ EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
 
 EZOKeybinds.name = "EZOKeybinds"
-EZOKeybinds.version = "1.0.6"
-EZOKeybinds.addOnVersion = 10006
+EZOKeybinds.version = "1.0.7"
+EZOKeybinds.addOnVersion = 10007
 EZOKeybinds._enabled = false
 EZOKeybinds._retrying = false
 
@@ -23,6 +23,11 @@ local function TryEnableOn(manager)
         return true
     end
 
+    if type(manager.SetChordingEnabled) == "function" then
+        manager:SetChordingEnabled(true)
+        return true
+    end
+
     return false
 end
 
@@ -31,7 +36,14 @@ local function EnableChording()
         return true
     end
 
-    if TryEnableOn(KEYBINDING_MANAGER) then
+    local enabled = false
+
+    -- Ricardo: algunos clientes exponen el control del dialogo y el manager general
+    -- por rutas distintas. Tocamos todas las que existan y no paramos en el primer OK.
+    enabled = TryEnableOn(KEYBINDINGS_MANAGER) or enabled
+    enabled = TryEnableOn(KEYBINDING_MANAGER) or enabled
+
+    if enabled then
         EZOKeybinds._enabled = true
         EZOKeybinds._retrying = false
         return true
