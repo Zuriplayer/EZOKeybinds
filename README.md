@@ -21,4 +21,4 @@ La referencia tecnica principal para APIs de ESO es UESP ESO Data:
 
 https://esodata.uesp.net/current/index.html
 
-En la revision actual, UESP `current` publica API 101047, por detras del manifest del addon (`101049 101050`). Por ese motivo, el addon usa solo la ruta confirmada por UESP para esta funcionalidad: `KEYBINDINGS_MANAGER:SetChordingAlwaysEnabled(true)`.
+En la revision actual, UESP `current` publica API 101047, por detras del manifest del addon (`101049 101050`). Por ese motivo, el addon usa solo la ruta confirmada por UESP para esta funcionalidad: `KEYBINDING_MANAGER:SetChordingAlwaysEnabled(true)`.

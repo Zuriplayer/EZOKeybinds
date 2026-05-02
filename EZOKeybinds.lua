@@ -30,7 +30,7 @@ local function EnableChording()
         return true
     end
 
-    if TryEnableOn(KEYBINDINGS_MANAGER) then
+    if TryEnableOn(KEYBINDING_MANAGER) then
         EZOKeybinds._enabled = true
         EZOKeybinds._retrying = false
         return true
