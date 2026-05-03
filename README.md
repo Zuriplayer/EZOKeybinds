@@ -34,6 +34,16 @@ Comando de diagnostico:
 /ezokeybinds defaults
 ```
 
+Comando experimental para intentar aplicar defaults seguros de un addon registrado:
+
+```text
+/ezokeybinds apply-defaults EZOTools
+```
+
+Solo intenta aplicar candidatos que la validacion nativa marca como libres. Si el
+binding ya pertenece a la misma accion, lo informa como ya aplicado. Si un candidato
+desplazaria otra accion, no lo toca.
+
 ## Pruebas cerradas
 
 Validar en cliente real:

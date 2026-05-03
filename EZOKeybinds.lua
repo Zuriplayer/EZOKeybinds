@@ -2,8 +2,8 @@ EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
 
 EZOKeybinds.name = "EZOKeybinds"
-EZOKeybinds.version = "1.0.13"
-EZOKeybinds.addOnVersion = 10013
+EZOKeybinds.version = "1.0.14"
+EZOKeybinds.addOnVersion = 10014
 EZOKeybinds._enabled = false
 EZOKeybinds._retrying = false
 
@@ -17,6 +17,7 @@ local GetNumActionLayers = GetNumActionLayers
 local KEY_INVALID = KEY_INVALID
 local SLASH_COMMANDS = SLASH_COMMANDS
 local _G = _G
+local ipairs = ipairs
 local pairs = pairs
 local string_format = string.format
 local table_concat = table.concat
@@ -283,6 +284,12 @@ local function ValidateBindingCandidate(actionName, device, bindingName, candida
         return result
     end
 
+    result.key = key
+    result.mod1 = mod1
+    result.mod2 = mod2
+    result.mod3 = mod3
+    result.mod4 = mod4
+
     local conflictCategoryIndex, conflictActionIndex, conflictBindingIndex = GetBindingIndicesFromKeys(layerIndex, key, mod1, mod2, mod3, mod4)
 
     if conflictCategoryIndex and conflictActionIndex and conflictBindingIndex then
@@ -295,6 +302,10 @@ local function ValidateBindingCandidate(actionName, device, bindingName, candida
     end
 
     return result
+end
+
+local function IsUsableCandidate(candidate)
+    return candidate and (candidate.status == "ok" or candidate.status == "own-action")
 end
 
 local function AddDeviceCandidates(results, action, device)
@@ -325,6 +336,32 @@ local function FindFirstUsableCandidate(results)
     end
 
     return nil
+end
+
+local function FindFirstUsableDeviceCandidate(action, device)
+    local candidates = {}
+    AddDeviceCandidates(candidates, action, device)
+    return FindFirstUsableCandidate(candidates), candidates
+end
+
+local function ApplyCandidate(candidate)
+    if type(CreateDefaultActionBind) ~= "function" then
+        return "native-api-missing"
+    end
+
+    if not IsUsableCandidate(candidate) then
+        return "blocked"
+    end
+
+    if candidate.status == "own-action" then
+        return "already-own-action"
+    end
+
+    local ok = pcall(function()
+        CreateDefaultActionBind(candidate.actionName, candidate.key, candidate.mod1, candidate.mod2, candidate.mod3, candidate.mod4)
+    end)
+
+    return ok and "applied" or "apply-error"
 end
 
 function EZOKeybinds:RegisterAddonDefaults(addonName, defaults)
@@ -419,6 +456,123 @@ function EZOKeybinds:GetLastDefaultValidation()
     return self._lastDefaultValidation
 end
 
+function EZOKeybinds:ApplySafeDefaults(addonName)
+    local defaults = self.defaultRegistry[addonName]
+    local result = {
+        addonName = addonName,
+        actions = {},
+        total = 0,
+        applied = 0,
+        already = 0,
+        blocked = 0,
+        unsupported = 0,
+        missing = 0,
+        errors = 0,
+    }
+
+    if type(defaults) ~= "table" then
+        return result
+    end
+
+    for index = 1, #defaults do
+        local action = defaults[index]
+        local actionName = type(action) == "table" and (action.action or action.name) or nil
+
+        if actionName then
+            for _, device in ipairs({ "gamepad", "keyboard" }) do
+                if type(action[device]) == "table" then
+                    local selected, candidates = FindFirstUsableDeviceCandidate(action, device)
+                    local applyStatus = selected and ApplyCandidate(selected) or "blocked"
+                    local entry = {
+                        actionName = actionName,
+                        device = device,
+                        selected = selected,
+                        candidates = candidates,
+                        status = applyStatus,
+                    }
+
+                    result.total = result.total + 1
+                    table_insert(result.actions, entry)
+
+                    if applyStatus == "applied" then
+                        result.applied = result.applied + 1
+                    elseif applyStatus == "already-own-action" then
+                        result.already = result.already + 1
+                    elseif applyStatus == "native-api-missing" or applyStatus == "apply-error" then
+                        result.errors = result.errors + 1
+                    else
+                        result.blocked = result.blocked + 1
+                    end
+
+                    for candidateIndex = 1, #(candidates or {}) do
+                        local candidateStatus = candidates[candidateIndex].status
+                        if candidateStatus == "missing-action" then result.missing = result.missing + 1 end
+                        if candidateStatus == "unsupported-binding" then result.unsupported = result.unsupported + 1 end
+                    end
+                end
+            end
+        end
+    end
+
+    self._lastDefaultApply = result
+    return result
+end
+
+function EZOKeybinds:GetLastDefaultApply()
+    return self._lastDefaultApply
+end
+
+function EZOKeybinds:DebugApplySafeDefaults(addonName)
+    local result = self:ApplySafeDefaults(addonName)
+    local lines = {}
+
+    lines[#lines + 1] = string_format(
+        "summary || version=%s addonVersion=%s || addon=%s || total=%d applied=%d already=%d blocked=%d unsupported=%d missing=%d errors=%d",
+        self.version,
+        tostring(self.addOnVersion),
+        tostring(addonName or "-"),
+        result.total,
+        result.applied,
+        result.already,
+        result.blocked,
+        result.unsupported,
+        result.missing,
+        result.errors
+    )
+
+    for index = 1, #result.actions do
+        local entry = result.actions[index]
+        local selected = entry.selected
+        local displayed = selected or (entry.candidates and entry.candidates[1]) or nil
+        local conflictText = "-"
+
+        if displayed and displayed.conflict then
+            conflictText = string_format(
+                "%s/%s/%s [%s] slot %d",
+                displayed.conflict.layerName,
+                displayed.conflict.categoryName,
+                displayed.conflict.actionLabel,
+                displayed.conflict.actionName,
+                displayed.conflict.bindingIndex
+            )
+        end
+
+        lines[#lines + 1] = string_format(
+            "%s || %s || selected=%s/%s || binding=%s || validation=%s || apply=%s || conflict=%s",
+            result.addonName or "-",
+            entry.actionName or "-",
+            entry.device or "-",
+            selected and selected.candidateType or "-",
+            displayed and displayed.binding or "-",
+            selected and selected.status or (displayed and displayed.status or "no-safe-candidate"),
+            entry.status or "-",
+            conflictText
+        )
+    end
+
+    EmitReport("EZOKeybinds apply safe defaults", lines)
+end
+
 function EZOKeybinds:DebugDefaultValidation()
     local validation = self:ValidateAllAddonDefaults()
     local lines = {}
@@ -475,12 +629,17 @@ end
 
 function EZOKeybinds:RegisterSlashCommands()
     SLASH_COMMANDS["/ezokeybinds"] = function(args)
-        local command = (args or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
+        local raw = (args or ""):gsub("^%s+", ""):gsub("%s+$", "")
+        local command, rest = raw:match("^(%S+)%s*(.*)$")
+        command = (command or ""):lower()
+        rest = (rest or ""):gsub("^%s+", ""):gsub("%s+$", "")
 
         if command == "defaults" then
             self:DebugDefaultValidation()
+        elseif command == "apply-defaults" then
+            self:DebugApplySafeDefaults(rest ~= "" and rest or "EZOTools")
         else
-            Print("EZOKeybinds: use /ezokeybinds defaults")
+            Print("EZOKeybinds: use /ezokeybinds defaults or /ezokeybinds apply-defaults <addon>")
         end
     end
 end
