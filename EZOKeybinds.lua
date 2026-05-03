@@ -2,8 +2,8 @@ EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
 
 EZOKeybinds.name = "EZOKeybinds"
-EZOKeybinds.version = "1.0.11"
-EZOKeybinds.addOnVersion = 10011
+EZOKeybinds.version = "1.0.12"
+EZOKeybinds.addOnVersion = 10012
 EZOKeybinds._enabled = false
 EZOKeybinds._retrying = false
 
@@ -49,17 +49,72 @@ local function GetLogger()
         return EZOKeybinds._logger
     end
 
-    if LibDebugLogger and type(LibDebugLogger.Create) == "function" then
-        EZOKeybinds._logger = LibDebugLogger:Create(EZOKeybinds.name)
-
-        if type(EZOKeybinds._logger.SetMinLevelOverride) == "function" and LibDebugLogger.LOG_LEVEL_DEBUG then
-            EZOKeybinds._logger:SetMinLevelOverride(LibDebugLogger.LOG_LEVEL_DEBUG)
-        end
-
-        return EZOKeybinds._logger
+    local lib = _G.LibDebugLogger
+    if type(lib) ~= "function" and type(lib) ~= "table" then
+        return nil
     end
 
-    return nil
+    local ok, logger = false, nil
+
+    if type(lib) == "function" then
+        ok, logger = pcall(lib, EZOKeybinds.name)
+    end
+
+    if (not ok or logger == nil) and type(lib) == "table" and type(lib.Create) == "function" then
+        ok, logger = pcall(function()
+            return lib:Create(EZOKeybinds.name)
+        end)
+
+        if not ok or logger == nil then
+            ok, logger = pcall(lib.Create, EZOKeybinds.name)
+        end
+    end
+
+    if not ok or logger == nil then
+        return nil
+    end
+
+    if type(logger.SetMinLevelOverride) == "function" and type(lib) == "table" and lib.LOG_LEVEL_DEBUG ~= nil then
+        pcall(function()
+            logger:SetMinLevelOverride(lib.LOG_LEVEL_DEBUG)
+        end)
+    end
+
+    EZOKeybinds._logger = logger
+    return logger
+end
+
+local function DebugLog(message)
+    local logger = GetLogger()
+
+    if not logger then
+        return false
+    end
+
+    if type(logger.Debug) == "function" then
+        return pcall(function()
+            logger:Debug(tostring(message))
+        end)
+    end
+
+    local lib = _G.LibDebugLogger
+    if type(logger.Log) == "function" and type(lib) == "table" and lib.LOG_LEVEL_DEBUG ~= nil then
+        return pcall(function()
+            logger:Log(lib.LOG_LEVEL_DEBUG, tostring(message))
+        end)
+    end
+
+    return false
+end
+
+local function CanOpenDebugLogViewer()
+    local viewer = _G.DebugLogViewer
+
+    if not viewer then
+        return false
+    end
+
+    return type(viewer.ShowWindow) == "function" or type(viewer.ToggleWindow) == "function"
 end
 
 local function GetKeyConstant(part)
@@ -387,19 +442,24 @@ function EZOKeybinds:DebugDefaultValidation()
         end
     end
 
-    local logger = GetLogger()
-    if logger and type(logger.Debug) == "function" then
-        logger:Debug(header)
+    local logged = DebugLog(header)
 
+    if logged then
         for index = 1, #lines do
-            logger:Debug(lines[index])
+            DebugLog(lines[index])
         end
     else
         d(header)
         d(table_concat(lines, "\n"))
     end
 
-    Print(string_format("EZOKeybinds: default validation addons=%d actions=%d candidates=%d ok=%d blocked=%d", #validation.addons, validation.total, validation.totalCandidates, validation.ok, validation.blocked))
+    if logged and CanOpenDebugLogViewer() then
+        Print(string_format("EZOKeybinds: default validation logged addons=%d actions=%d candidates=%d ok=%d blocked=%d", #validation.addons, validation.total, validation.totalCandidates, validation.ok, validation.blocked))
+    elseif logged then
+        Print(string_format("EZOKeybinds: default validation logged, but DebugLogViewer is not available. addons=%d actions=%d candidates=%d ok=%d blocked=%d", #validation.addons, validation.total, validation.totalCandidates, validation.ok, validation.blocked))
+    else
+        Print(string_format("EZOKeybinds: LibDebugLogger unavailable; printed validation to chat/debug. addons=%d actions=%d candidates=%d ok=%d blocked=%d", #validation.addons, validation.total, validation.totalCandidates, validation.ok, validation.blocked))
+    end
 end
 
 function EZOKeybinds:RegisterSlashCommands()
