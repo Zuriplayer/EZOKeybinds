@@ -2,8 +2,8 @@ EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
 
 EZOKeybinds.name = "EZOKeybinds"
-EZOKeybinds.version = "1.0.7"
-EZOKeybinds.addOnVersion = 10007
+EZOKeybinds.version = "1.0.8"
+EZOKeybinds.addOnVersion = 10008
 EZOKeybinds._enabled = false
 EZOKeybinds._retrying = false
 
