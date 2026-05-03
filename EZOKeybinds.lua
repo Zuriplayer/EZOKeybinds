@@ -2,16 +2,398 @@ EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
 
 EZOKeybinds.name = "EZOKeybinds"
-EZOKeybinds.version = "1.0.8"
-EZOKeybinds.addOnVersion = 10008
+EZOKeybinds.version = "1.0.9"
+EZOKeybinds.addOnVersion = 10009
 EZOKeybinds._enabled = false
 EZOKeybinds._retrying = false
 
 local EVENT_MANAGER = EVENT_MANAGER
+local GetActionInfo = GetActionInfo
+local GetActionLabel = GetActionLabel
+local GetActionLayerCategoryInfo = GetActionLayerCategoryInfo
+local GetActionLayerInfo = GetActionLayerInfo
+local GetBindingIndicesFromKeys = GetBindingIndicesFromKeys
+local GetNumActionLayers = GetNumActionLayers
+local KEY_INVALID = KEY_INVALID
+local SLASH_COMMANDS = SLASH_COMMANDS
+local _G = _G
+local pairs = pairs
+local string_format = string.format
+local table_concat = table.concat
+local table_insert = table.insert
 local zo_callLater = zo_callLater
+local tostring = tostring
 local type = type
 
 local RETRY_DELAYS_MS = { 500, 1500, 3000 }
+local MODIFIER_ALIASES = {
+    ALT = "KEY_ALT",
+    COMMAND = "KEY_COMMAND",
+    CTRL = "KEY_CTRL",
+    SHIFT = "KEY_SHIFT",
+}
+
+EZOKeybinds.defaultRegistry = EZOKeybinds.defaultRegistry or {}
+EZOKeybinds._lastDefaultValidation = EZOKeybinds._lastDefaultValidation or nil
+
+local function Print(message)
+    if CHAT_SYSTEM and type(CHAT_SYSTEM.AddMessage) == "function" then
+        CHAT_SYSTEM:AddMessage(tostring(message))
+    else
+        d(tostring(message))
+    end
+end
+
+local function GetLogger()
+    if EZOKeybinds._logger ~= nil then
+        return EZOKeybinds._logger
+    end
+
+    if LibDebugLogger and type(LibDebugLogger.Create) == "function" then
+        EZOKeybinds._logger = LibDebugLogger:Create(EZOKeybinds.name)
+        return EZOKeybinds._logger
+    end
+
+    return nil
+end
+
+local function GetKeyConstant(part)
+    local value = _G[part]
+
+    if type(value) == "number" then
+        return value
+    end
+
+    local alias = MODIFIER_ALIASES[part]
+    if alias then
+        value = _G[alias]
+
+        if type(value) == "number" then
+            return value
+        end
+    end
+
+    return nil
+end
+
+local function GetBindingParts(bindingName)
+    if type(bindingName) ~= "string" or bindingName == "" or bindingName == "unbound" then
+        return nil
+    end
+
+    local key = GetKeyConstant(bindingName)
+    if key then
+        return key, KEY_INVALID, KEY_INVALID, KEY_INVALID, KEY_INVALID
+    end
+
+    local parts = {}
+    for part in bindingName:gmatch("[^+]+") do
+        table_insert(parts, part)
+    end
+
+    key = GetKeyConstant(parts[#parts] or "")
+    if not key then
+        return nil
+    end
+
+    local mods = { KEY_INVALID, KEY_INVALID, KEY_INVALID, KEY_INVALID }
+
+    for index = 1, #parts - 1 do
+        local mod = GetKeyConstant(parts[index])
+
+        if not mod then
+            return nil
+        end
+
+        mods[index] = mod
+    end
+
+    return key, mods[1], mods[2], mods[3], mods[4]
+end
+
+local function FindActionIndices(actionName)
+    if type(actionName) ~= "string" or actionName == "" then
+        return nil
+    end
+
+    for layerIndex = 1, GetNumActionLayers() do
+        local _, numCategories = GetActionLayerInfo(layerIndex)
+
+        for categoryIndex = 1, numCategories do
+            local _, numActions = GetActionLayerCategoryInfo(layerIndex, categoryIndex)
+
+            for actionIndex = 1, numActions do
+                local currentActionName = GetActionInfo(layerIndex, categoryIndex, actionIndex)
+
+                if currentActionName == actionName then
+                    return layerIndex, categoryIndex, actionIndex
+                end
+            end
+        end
+    end
+
+    return nil
+end
+
+local function GetActionContext(layerIndex, categoryIndex, actionIndex, bindingIndex)
+    local layerName = GetActionLayerInfo(layerIndex)
+    local categoryName = GetActionLayerCategoryInfo(layerIndex, categoryIndex)
+    local actionName = GetActionInfo(layerIndex, categoryIndex, actionIndex)
+
+    return {
+        layerIndex = layerIndex,
+        layerName = tostring(layerName or layerIndex),
+        categoryIndex = categoryIndex,
+        categoryName = tostring(categoryName or categoryIndex),
+        actionIndex = actionIndex,
+        actionName = actionName or "-",
+        actionLabel = actionName and GetActionLabel(actionName) or "-",
+        bindingIndex = bindingIndex or 0,
+    }
+end
+
+local function SameAction(categoryIndex, actionIndex, targetCategoryIndex, targetActionIndex)
+    return categoryIndex == targetCategoryIndex and actionIndex == targetActionIndex
+end
+
+local function ValidateBindingCandidate(actionName, device, bindingName, candidateType)
+    local result = {
+        actionName = actionName,
+        device = device,
+        binding = bindingName or "-",
+        candidateType = candidateType,
+        status = "ok",
+        conflict = nil,
+    }
+
+    local layerIndex, categoryIndex, actionIndex = FindActionIndices(actionName)
+    if not layerIndex then
+        result.status = "missing-action"
+        return result
+    end
+
+    result.target = GetActionContext(layerIndex, categoryIndex, actionIndex, 0)
+
+    if type(GetBindingIndicesFromKeys) ~= "function" then
+        result.status = "native-api-missing"
+        return result
+    end
+
+    local key, mod1, mod2, mod3, mod4 = GetBindingParts(bindingName)
+    if not key then
+        result.status = "unsupported-binding"
+        return result
+    end
+
+    local conflictCategoryIndex, conflictActionIndex, conflictBindingIndex = GetBindingIndicesFromKeys(layerIndex, key, mod1, mod2, mod3, mod4)
+
+    if conflictCategoryIndex and conflictActionIndex and conflictBindingIndex then
+        if SameAction(conflictCategoryIndex, conflictActionIndex, categoryIndex, actionIndex) then
+            result.status = "own-action"
+        else
+            result.status = "blocked"
+            result.conflict = GetActionContext(layerIndex, conflictCategoryIndex, conflictActionIndex, conflictBindingIndex)
+        end
+    end
+
+    return result
+end
+
+local function AddDeviceCandidates(results, action, device)
+    local config = type(action[device]) == "table" and action[device] or nil
+
+    if not config then
+        return
+    end
+
+    if config.preferred then
+        table_insert(results, ValidateBindingCandidate(action.action or action.name, device, config.preferred, "preferred"))
+    end
+
+    if type(config.fallbacks) == "table" then
+        for index = 1, #config.fallbacks do
+            table_insert(results, ValidateBindingCandidate(action.action or action.name, device, config.fallbacks[index], "fallback"))
+        end
+    end
+end
+
+local function FindFirstUsableCandidate(results)
+    for index = 1, #results do
+        local result = results[index]
+
+        if result.status == "ok" or result.status == "own-action" then
+            return result
+        end
+    end
+
+    return nil
+end
+
+function EZOKeybinds:RegisterAddonDefaults(addonName, defaults)
+    if type(addonName) ~= "string" or addonName == "" or type(defaults) ~= "table" then
+        return false
+    end
+
+    self.defaultRegistry[addonName] = defaults
+    return true
+end
+
+function EZOKeybinds:GetAddonDefaults(addonName)
+    return self.defaultRegistry[addonName]
+end
+
+function EZOKeybinds:ValidateAddonDefaults(addonName)
+    local defaults = self.defaultRegistry[addonName]
+    local validation = {
+        addonName = addonName,
+        actions = {},
+        total = 0,
+        totalCandidates = 0,
+        ok = 0,
+        blocked = 0,
+        missing = 0,
+        unsupported = 0,
+    }
+
+    if type(defaults) ~= "table" then
+        return validation
+    end
+
+    for index = 1, #defaults do
+        local action = defaults[index]
+        local actionName = type(action) == "table" and (action.action or action.name) or nil
+        local actionResults = {}
+
+        if actionName then
+            AddDeviceCandidates(actionResults, action, "gamepad")
+            AddDeviceCandidates(actionResults, action, "keyboard")
+        end
+
+        local usable = FindFirstUsableCandidate(actionResults)
+        local actionValidation = {
+            actionName = actionName or "-",
+            candidates = actionResults,
+            selected = usable,
+            status = usable and "ok" or "blocked",
+        }
+
+        table_insert(validation.actions, actionValidation)
+        validation.total = validation.total + 1
+
+        for resultIndex = 1, #actionResults do
+            local status = actionResults[resultIndex].status
+
+            validation.totalCandidates = validation.totalCandidates + 1
+            if status == "ok" or status == "own-action" then validation.ok = validation.ok + 1 end
+            if status == "blocked" then validation.blocked = validation.blocked + 1 end
+            if status == "missing-action" then validation.missing = validation.missing + 1 end
+            if status == "unsupported-binding" then validation.unsupported = validation.unsupported + 1 end
+        end
+    end
+
+    return validation
+end
+
+function EZOKeybinds:ValidateAllAddonDefaults()
+    local all = {
+        addons = {},
+        total = 0,
+        totalCandidates = 0,
+        ok = 0,
+        blocked = 0,
+    }
+
+    for addonName in pairs(self.defaultRegistry) do
+        local validation = self:ValidateAddonDefaults(addonName)
+
+        table_insert(all.addons, validation)
+        all.total = all.total + validation.total
+        all.totalCandidates = all.totalCandidates + validation.totalCandidates
+        all.ok = all.ok + validation.ok
+        all.blocked = all.blocked + validation.blocked
+    end
+
+    self._lastDefaultValidation = all
+    return all
+end
+
+function EZOKeybinds:GetLastDefaultValidation()
+    return self._lastDefaultValidation
+end
+
+function EZOKeybinds:DebugDefaultValidation()
+    local validation = self:ValidateAllAddonDefaults()
+    local lines = {}
+
+    for addonIndex = 1, #validation.addons do
+        local addon = validation.addons[addonIndex]
+
+        for actionIndex = 1, #addon.actions do
+            local action = addon.actions[actionIndex]
+
+            for candidateIndex = 1, #action.candidates do
+                local candidate = action.candidates[candidateIndex]
+                local conflict = candidate.conflict
+                local conflictText = "-"
+
+                if conflict then
+                    conflictText = string_format(
+                        "%s/%s/%s [%s] slot %d",
+                        conflict.layerName,
+                        conflict.categoryName,
+                        conflict.actionLabel,
+                        conflict.actionName,
+                        conflict.bindingIndex
+                    )
+                end
+
+                table_insert(lines, string_format(
+                    "%s || %s || %s/%s || binding=%s || status=%s || conflict=%s",
+                    addon.addonName,
+                    action.actionName,
+                    candidate.device,
+                    candidate.candidateType,
+                    candidate.binding,
+                    candidate.status,
+                    conflictText
+                ))
+            end
+        end
+    end
+
+    local message = string_format(
+        "EZOKeybinds default validation || version=%s addonVersion=%s || addons=%d actions=%d candidates=%d ok=%d blocked=%d\n%s",
+        self.version,
+        tostring(self.addOnVersion),
+        #validation.addons,
+        validation.total,
+        validation.totalCandidates,
+        validation.ok,
+        validation.blocked,
+        table_concat(lines, "\n")
+    )
+
+    local logger = GetLogger()
+    if logger and type(logger.Debug) == "function" then
+        logger:Debug(message)
+    else
+        d(message)
+    end
+
+    Print("EZOKeybinds: default validation sent to DebugLogViewer.")
+end
+
+function EZOKeybinds:RegisterSlashCommands()
+    SLASH_COMMANDS["/ezokeybinds"] = function(args)
+        local command = (args or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
+
+        if command == "defaults" then
+            self:DebugDefaultValidation()
+        else
+            Print("EZOKeybinds: use /ezokeybinds defaults")
+        end
+    end
+end
 
 local function TryEnableOn(manager)
     if type(manager) ~= "table" then
@@ -89,6 +471,7 @@ local function OnAddonLoaded(_, addonName)
     end
 
     EVENT_MANAGER:UnregisterForEvent(EZOKeybinds.name, EVENT_ADD_ON_LOADED)
+    EZOKeybinds:RegisterSlashCommands()
     RetryEnableChording()
 end
 

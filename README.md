@@ -2,7 +2,37 @@
 
 EZOKeybinds habilita el chording nativo de keybindings de ESO para permitir combinaciones con modificadores como Ctrl, Alt, Shift y Command desde el menu de controles del juego.
 
-El addon no anade interfaz propia, panel de configuracion, SavedVariables ni keybinds nuevos. Solo activa el comportamiento nativo del cliente cuando el manager de keybindings esta disponible.
+El addon no anade interfaz propia, panel de configuracion ni SavedVariables. Activa el comportamiento nativo del cliente cuando el manager de keybindings esta disponible y expone una validacion experimental de defaults para la familia EZO.
+
+## Defaults EZO
+
+Otros addons EZO pueden declarar sus defaults sin aplicarlos directamente:
+
+```lua
+if EZOKeybinds then
+    EZOKeybinds:RegisterAddonDefaults("EZOTools", {
+        {
+            action = "EZO_TOGGLE_COMMAND_PANEL",
+            gamepad = {
+                preferred = "KEY_GAMEPAD_BUTTON_3_HOLD",
+            },
+            keyboard = {
+                preferred = "CTRL+ALT+KEY_NUMPAD0",
+            },
+        },
+    })
+end
+```
+
+La validacion usa la API nativa `GetBindingIndicesFromKeys` para comprobar si un
+default propuesto desplazaria una accion existente en el mismo layer. La validacion
+no asigna ni desasigna bindings.
+
+Comando de diagnostico:
+
+```text
+/ezokeybinds defaults
+```
 
 ## Pruebas cerradas
 
@@ -13,16 +43,16 @@ Validar en cliente real:
 - En teclado, el menu de controles permite asignar combinaciones con modificadores a acciones normales.
 - En gamepad, no cambia navegacion, controles ni binds.
 - Tras `/reloadui`, las combinaciones siguen disponibles.
+- Con `EZOTools` cargado, `/ezokeybinds defaults` lista los defaults declarados y sus conflictos nativos.
 - En PTS, revisar si el cliente acepta `APIVersion` 101050 sin marcar el addon como obsoleto.
-- Para diagnostico o coordinacion de bindings de la familia EZO, usar `EZOBindings`.
 
 ## Relacion con EZOBindings
 
 `EZOKeybinds` solo habilita la capacidad nativa de chording del cliente.
 
-`EZOBindings` se encarga del registro, snapshot y diagnostico de bindings para otros addons EZO.
+La validacion de defaults propuesta vive aqui porque esta cerca de la capacidad tecnica de keybindings. `EZOBindings` queda como diagnostico experimental mientras se decide si aporta valor separado.
 
-Mantener estas responsabilidades separadas evita que este addon toque input, comandos, SavedVariables o politicas de asignacion.
+Mantener esta responsabilidad centralizada evita que `EZOTools`, `EZOChat` y otros addons EZO dupliquen logica de colisiones.
 
 ## Compatibilidad
 
