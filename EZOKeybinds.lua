@@ -2,8 +2,8 @@ EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
 
 EZOKeybinds.name = "EZOKeybinds"
-EZOKeybinds.version = "1.0.16"
-EZOKeybinds.addOnVersion = 10016
+EZOKeybinds.version = "1.0.17"
+EZOKeybinds.addOnVersion = 10017
 EZOKeybinds._enabled = false
 EZOKeybinds._retrying = false
 
@@ -380,6 +380,20 @@ local function ApplyCandidate(candidate)
     return ok and "applied" or "apply-error"
 end
 
+local function AddConflictSummary(conflicts, actionName, device, candidate)
+    if not candidate or candidate.status ~= "blocked" then
+        return
+    end
+
+    table_insert(conflicts, {
+        actionName = actionName,
+        device = device,
+        binding = candidate.binding,
+        candidateType = candidate.candidateType,
+        conflict = candidate.conflict,
+    })
+end
+
 function EZOKeybinds:RegisterAddonDefaults(addonName, defaults)
     if type(addonName) ~= "string" or addonName == "" or type(defaults) ~= "table" then
         return false
@@ -503,6 +517,7 @@ function EZOKeybinds:ApplySafeDefaults(addonName)
         unsupported = 0,
         missing = 0,
         errors = 0,
+        conflicts = {},
     }
 
     if type(defaults) ~= "table" then
@@ -540,7 +555,11 @@ function EZOKeybinds:ApplySafeDefaults(addonName)
                     end
 
                     for candidateIndex = 1, #(candidates or {}) do
-                        local candidateStatus = candidates[candidateIndex].status
+                        local candidate = candidates[candidateIndex]
+                        local candidateStatus = candidate.status
+
+                        AddConflictSummary(result.conflicts, actionName, device, candidate)
+
                         if candidateStatus == "missing-action" then result.missing = result.missing + 1 end
                         if candidateStatus == "unsupported-binding" then result.unsupported = result.unsupported + 1 end
                         if candidateStatus == "native-api-missing" then result.errors = result.errors + 1 end

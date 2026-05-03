@@ -76,6 +76,15 @@ una lista ordenada de `fallbacks` por dispositivo. `EZOKeybinds` probara primero
 preferido y despues los fallbacks hasta encontrar una opcion libre o ya asignada a
 la misma accion.
 
+`ApplySafeDefaults(addonName)` devuelve un resultado estructurado para que el addon
+que lo llama pueda avisar al jugador con su propio estilo. Si una tecla propuesta
+esta ocupada, el resultado incluye:
+
+- `blocked`: numero de dispositivos sin ningun candidato seguro.
+- `conflicts`: lista directa de candidatos ocupados, con `actionName`, `device`,
+  `binding`, `candidateType` y `conflict`.
+- `actions[].candidates[]`: detalle completo de todos los candidatos evaluados.
+
 ## Pruebas cerradas
 
 Validar en cliente real:
