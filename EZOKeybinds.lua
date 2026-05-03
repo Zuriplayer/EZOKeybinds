@@ -2,8 +2,8 @@ EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
 
 EZOKeybinds.name = "EZOKeybinds"
-EZOKeybinds.version = "1.0.10"
-EZOKeybinds.addOnVersion = 10010
+EZOKeybinds.version = "1.0.11"
+EZOKeybinds.addOnVersion = 10011
 EZOKeybinds._enabled = false
 EZOKeybinds._retrying = false
 
@@ -51,6 +51,11 @@ local function GetLogger()
 
     if LibDebugLogger and type(LibDebugLogger.Create) == "function" then
         EZOKeybinds._logger = LibDebugLogger:Create(EZOKeybinds.name)
+
+        if type(EZOKeybinds._logger.SetMinLevelOverride) == "function" and LibDebugLogger.LOG_LEVEL_DEBUG then
+            EZOKeybinds._logger:SetMinLevelOverride(LibDebugLogger.LOG_LEVEL_DEBUG)
+        end
+
         return EZOKeybinds._logger
     end
 
@@ -335,6 +340,16 @@ end
 function EZOKeybinds:DebugDefaultValidation()
     local validation = self:ValidateAllAddonDefaults()
     local lines = {}
+    local header = string_format(
+        "EZOKeybinds default validation || version=%s addonVersion=%s || addons=%d actions=%d candidates=%d ok=%d blocked=%d",
+        self.version,
+        tostring(self.addOnVersion),
+        #validation.addons,
+        validation.total,
+        validation.totalCandidates,
+        validation.ok,
+        validation.blocked
+    )
 
     for addonIndex = 1, #validation.addons do
         local addon = validation.addons[addonIndex]
@@ -372,26 +387,19 @@ function EZOKeybinds:DebugDefaultValidation()
         end
     end
 
-    local message = string_format(
-        "EZOKeybinds default validation || version=%s addonVersion=%s || addons=%d actions=%d candidates=%d ok=%d blocked=%d\n%s",
-        self.version,
-        tostring(self.addOnVersion),
-        #validation.addons,
-        validation.total,
-        validation.totalCandidates,
-        validation.ok,
-        validation.blocked,
-        table_concat(lines, "\n")
-    )
-
     local logger = GetLogger()
     if logger and type(logger.Debug) == "function" then
-        logger:Debug(message)
+        logger:Debug(header)
+
+        for index = 1, #lines do
+            logger:Debug(lines[index])
+        end
     else
-        d(message)
+        d(header)
+        d(table_concat(lines, "\n"))
     end
 
-    Print("EZOKeybinds: default validation sent to DebugLogViewer.")
+    Print(string_format("EZOKeybinds: default validation addons=%d actions=%d candidates=%d ok=%d blocked=%d", #validation.addons, validation.total, validation.totalCandidates, validation.ok, validation.blocked))
 end
 
 function EZOKeybinds:RegisterSlashCommands()
