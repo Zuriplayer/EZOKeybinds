@@ -2,8 +2,8 @@ EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
 
 EZOKeybinds.name = "EZOKeybinds"
-EZOKeybinds.version = "1.0.15"
-EZOKeybinds.addOnVersion = 10015
+EZOKeybinds.version = "1.0.16"
+EZOKeybinds.addOnVersion = 10016
 EZOKeybinds._enabled = false
 EZOKeybinds._retrying = false
 
@@ -39,10 +39,13 @@ EZOKeybinds.defaultRegistry = EZOKeybinds.defaultRegistry or {}
 EZOKeybinds._lastDefaultValidation = EZOKeybinds._lastDefaultValidation or nil
 
 local function Print(message)
-    if CHAT_SYSTEM and type(CHAT_SYSTEM.AddMessage) == "function" then
-        CHAT_SYSTEM:AddMessage(tostring(message))
-    else
-        d(tostring(message))
+    local text = tostring(message)
+    local chatSystem = _G.CHAT_SYSTEM
+
+    if type(chatSystem) == "table" and type(chatSystem.AddMessage) == "function" then
+        chatSystem:AddMessage(text)
+    elseif type(_G.d) == "function" then
+        _G.d(text)
     end
 end
 
@@ -390,6 +393,16 @@ function EZOKeybinds:GetAddonDefaults(addonName)
     return self.defaultRegistry[addonName]
 end
 
+function EZOKeybinds:GetRegisteredAddonCount()
+    local count = 0
+
+    for _ in pairs(self.defaultRegistry) do
+        count = count + 1
+    end
+
+    return count
+end
+
 function EZOKeybinds:ValidateAddonDefaults(addonName)
     local defaults = self.defaultRegistry[addonName]
     local validation = {
@@ -545,6 +558,28 @@ function EZOKeybinds:GetLastDefaultApply()
     return self._lastDefaultApply
 end
 
+function EZOKeybinds:IsChordingEnabled()
+    return self._enabled == true
+end
+
+function EZOKeybinds:GetStatusText()
+    local status = "pendiente"
+
+    if self._enabled then
+        status = "activo"
+    elseif self._retrying then
+        status = "reintentando"
+    end
+
+    return string_format(
+        "EZOKeybinds: chording=%s version=%s addonVersion=%s registeredAddons=%d",
+        status,
+        tostring(self.version),
+        tostring(self.addOnVersion),
+        self:GetRegisteredAddonCount()
+    )
+end
+
 function EZOKeybinds:DebugApplySafeDefaults(addonName)
     local result = self:ApplySafeDefaults(addonName)
     local lines = {}
@@ -651,6 +686,10 @@ function EZOKeybinds:DebugDefaultValidation()
 end
 
 function EZOKeybinds:RegisterSlashCommands()
+    if type(SLASH_COMMANDS) ~= "table" then
+        return false
+    end
+
     SLASH_COMMANDS["/ezokeybinds"] = function(args)
         local raw = (args or ""):gsub("^%s+", ""):gsub("%s+$", "")
         local command, rest = raw:match("^(%S+)%s*(.*)$")
@@ -666,10 +705,14 @@ function EZOKeybinds:RegisterSlashCommands()
             end
 
             self:DebugApplySafeDefaults(rest)
+        elseif command == "status" then
+            Print(self:GetStatusText())
         else
-            Print("EZOKeybinds: use /ezokeybinds defaults or /ezokeybinds apply-defaults <addon>")
+            Print("EZOKeybinds: use /ezokeybinds status, /ezokeybinds defaults or /ezokeybinds apply-defaults <addon>")
         end
     end
+
+    return true
 end
 
 local function TryEnableOn(manager)

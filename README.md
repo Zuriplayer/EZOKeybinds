@@ -2,11 +2,24 @@
 
 EZOKeybinds habilita el chording nativo de keybindings de ESO para permitir combinaciones con modificadores como Ctrl, Alt, Shift y Command desde el menu de controles del juego.
 
-El addon no anade interfaz propia, panel de configuracion ni SavedVariables. Activa el comportamiento nativo del cliente cuando el manager de keybindings esta disponible y expone una validacion experimental de defaults para la familia EZO.
+El addon funciona por si solo. No anade interfaz propia, panel de configuracion ni SavedVariables. Su funcion principal es activar el comportamiento nativo del cliente cuando el manager de keybindings esta disponible.
 
-## Defaults EZO
+Ademas expone una API opcional para que otros addons puedan declarar defaults de bindings sin llamar directamente a la API nativa de ESO.
 
-Otros addons EZO pueden declarar sus defaults sin aplicarlos directamente:
+## Uso independiente
+
+Con solo este addon activo, el flujo esperado es:
+
+- Cargar personaje o ejecutar `/reloadui`.
+- Abrir el menu nativo de controles de ESO.
+- Asignar combinaciones de teclado con modificadores, por ejemplo `Ctrl+Alt+tecla`, sobre acciones bindables existentes.
+- Usar `/ezokeybinds status` si se quiere comprobar que el chording quedo activo.
+
+Si no hay otros addons registrados, los comandos de defaults no aplican nada y no son necesarios para la funcionalidad original.
+
+## Defaults nativos
+
+Otros addons pueden declarar sus defaults sin aplicarlos directamente:
 
 ```lua
 if EZOKeybinds then
@@ -40,7 +53,7 @@ Comando de diagnostico:
 /ezokeybinds defaults
 ```
 
-Comando experimental para intentar aplicar defaults seguros de un addon registrado:
+Comando para intentar aplicar defaults seguros de un addon registrado:
 
 ```text
 /ezokeybinds apply-defaults EZOTools
@@ -51,9 +64,9 @@ por descuido. Solo intenta aplicar candidatos que la validacion nativa marca com
 libres. Si el binding ya pertenece a la misma accion, lo informa como ya aplicado.
 Si un candidato desplazaria otra accion, no lo toca.
 
-## Contrato para addons EZO
+## Contrato para otros addons
 
-Los addons de la familia EZO no deberian llamar directamente a
+Los addons que usen `EZOKeybinds` no deberian llamar directamente a
 `CreateDefaultActionBind`. La ruta recomendada es registrar sus candidatos con
 `RegisterAddonDefaults` y dejar que `EZOKeybinds` valide colisiones y aplique solo
 bindings seguros.
@@ -69,6 +82,7 @@ Validar en cliente real:
 
 - El addon aparece habilitado en la lista de addons.
 - No muestra mensajes en chat al cargar.
+- Con solo `EZOKeybinds` activo, `/ezokeybinds status` responde sin depender de otros addons.
 - En teclado, el menu de controles permite asignar combinaciones con modificadores a acciones normales.
 - En gamepad, no cambia navegacion, controles ni binds.
 - Tras `/reloadui`, las combinaciones siguen disponibles.
@@ -77,11 +91,9 @@ Validar en cliente real:
 
 ## Relacion con EZOBindings
 
-`EZOKeybinds` solo habilita la capacidad nativa de chording del cliente.
+`EZOBindings` queda fuera del flujo activo. La gestion util de defaults y colisiones vive en `EZOKeybinds` para mantenerla cerca del chording y de las APIs nativas de ESO.
 
-La validacion de defaults propuesta vive aqui porque esta cerca de la capacidad tecnica de keybindings. `EZOBindings` queda como diagnostico experimental mientras se decide si aporta valor separado.
-
-Mantener esta responsabilidad centralizada evita que `EZOTools`, `EZOChat` y otros addons EZO dupliquen logica de colisiones.
+Mantener esta responsabilidad centralizada evita que `EZOTools`, `EZOChat` y otros addons dupliquen logica de colisiones o llamen directamente a `CreateDefaultActionBind`.
 
 ## Compatibilidad
 
