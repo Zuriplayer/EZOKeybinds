@@ -2,8 +2,8 @@ EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
 
 EZOKeybinds.name = "EZOKeybinds"
-EZOKeybinds.version = "1.0.12"
-EZOKeybinds.addOnVersion = 10012
+EZOKeybinds.version = "1.0.13"
+EZOKeybinds.addOnVersion = 10013
 EZOKeybinds._enabled = false
 EZOKeybinds._retrying = false
 
@@ -115,6 +115,33 @@ local function CanOpenDebugLogViewer()
     end
 
     return type(viewer.ShowWindow) == "function" or type(viewer.ToggleWindow) == "function"
+end
+
+local function EmitReport(title, lines)
+    local report = {}
+    local finalTitle = tostring(title or "EZOKeybinds debug")
+
+    report[#report + 1] = finalTitle
+
+    if type(lines) == "table" then
+        for index = 1, #lines do
+            report[#report + 1] = tostring(lines[index])
+        end
+    elseif lines ~= nil then
+        report[#report + 1] = tostring(lines)
+    end
+
+    local logged = DebugLog(table_concat(report, "\n"))
+
+    if logged and CanOpenDebugLogViewer() then
+        Print("Diagnostic report generated: " .. finalTitle)
+    elseif logged then
+        Print("Diagnostic report generated: " .. finalTitle .. ". Diagnostic viewer is not available.")
+    else
+        Print("Technical diagnostics are not available; no report was generated.")
+    end
+
+    return logged
 end
 
 local function GetKeyConstant(part)
@@ -395,8 +422,9 @@ end
 function EZOKeybinds:DebugDefaultValidation()
     local validation = self:ValidateAllAddonDefaults()
     local lines = {}
-    local header = string_format(
-        "EZOKeybinds default validation || version=%s addonVersion=%s || addons=%d actions=%d candidates=%d ok=%d blocked=%d",
+
+    lines[#lines + 1] = string_format(
+        "summary || version=%s addonVersion=%s || addons=%d actions=%d candidates=%d ok=%d blocked=%d",
         self.version,
         tostring(self.addOnVersion),
         #validation.addons,
@@ -428,7 +456,7 @@ function EZOKeybinds:DebugDefaultValidation()
                     )
                 end
 
-                table_insert(lines, string_format(
+                lines[#lines + 1] = string_format(
                     "%s || %s || %s/%s || binding=%s || status=%s || conflict=%s",
                     addon.addonName,
                     action.actionName,
@@ -437,29 +465,12 @@ function EZOKeybinds:DebugDefaultValidation()
                     candidate.binding,
                     candidate.status,
                     conflictText
-                ))
+                )
             end
         end
     end
 
-    local logged = DebugLog(header)
-
-    if logged then
-        for index = 1, #lines do
-            DebugLog(lines[index])
-        end
-    else
-        d(header)
-        d(table_concat(lines, "\n"))
-    end
-
-    if logged and CanOpenDebugLogViewer() then
-        Print(string_format("EZOKeybinds: default validation logged addons=%d actions=%d candidates=%d ok=%d blocked=%d", #validation.addons, validation.total, validation.totalCandidates, validation.ok, validation.blocked))
-    elseif logged then
-        Print(string_format("EZOKeybinds: default validation logged, but DebugLogViewer is not available. addons=%d actions=%d candidates=%d ok=%d blocked=%d", #validation.addons, validation.total, validation.totalCandidates, validation.ok, validation.blocked))
-    else
-        Print(string_format("EZOKeybinds: LibDebugLogger unavailable; printed validation to chat/debug. addons=%d actions=%d candidates=%d ok=%d blocked=%d", #validation.addons, validation.total, validation.totalCandidates, validation.ok, validation.blocked))
-    end
+    EmitReport("EZOKeybinds default validation", lines)
 end
 
 function EZOKeybinds:RegisterSlashCommands()
