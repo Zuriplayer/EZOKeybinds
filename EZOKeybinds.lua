@@ -2,8 +2,8 @@ EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
 
 EZOKeybinds.name = "EZOKeybinds"
-EZOKeybinds.version = "1.0.9"
-EZOKeybinds.addOnVersion = 10009
+EZOKeybinds.version = "1.0.10"
+EZOKeybinds.addOnVersion = 10010
 EZOKeybinds._enabled = false
 EZOKeybinds._retrying = false
 
@@ -139,6 +139,17 @@ local function GetActionContext(layerIndex, categoryIndex, actionIndex, bindingI
     local layerName = GetActionLayerInfo(layerIndex)
     local categoryName = GetActionLayerCategoryInfo(layerIndex, categoryIndex)
     local actionName = GetActionInfo(layerIndex, categoryIndex, actionIndex)
+    local actionLabel = actionName or "-"
+
+    if actionName and type(GetActionLabel) == "function" then
+        actionLabel = GetActionLabel(actionName)
+    elseif actionName and type(GetString) == "function" then
+        local stringId = _G["SI_BINDING_NAME_" .. actionName]
+
+        if stringId ~= nil then
+            actionLabel = GetString(stringId)
+        end
+    end
 
     return {
         layerIndex = layerIndex,
@@ -147,7 +158,7 @@ local function GetActionContext(layerIndex, categoryIndex, actionIndex, bindingI
         categoryName = tostring(categoryName or categoryIndex),
         actionIndex = actionIndex,
         actionName = actionName or "-",
-        actionLabel = actionName and GetActionLabel(actionName) or "-",
+        actionLabel = actionLabel or "-",
         bindingIndex = bindingIndex or 0,
     }
 end
