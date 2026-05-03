@@ -15,9 +15,15 @@ if EZOKeybinds then
             action = "EZO_TOGGLE_COMMAND_PANEL",
             gamepad = {
                 preferred = "KEY_GAMEPAD_BUTTON_3_HOLD",
+                fallbacks = {
+                    "KEY_GAMEPAD_DPAD_RIGHT_HOLD",
+                },
             },
             keyboard = {
                 preferred = "CTRL+ALT+KEY_NUMPAD0",
+                fallbacks = {
+                    "CTRL+SHIFT+KEY_NUMPAD0",
+                },
             },
         },
     })
@@ -40,9 +46,22 @@ Comando experimental para intentar aplicar defaults seguros de un addon registra
 /ezokeybinds apply-defaults EZOTools
 ```
 
-Solo intenta aplicar candidatos que la validacion nativa marca como libres. Si el
-binding ya pertenece a la misma accion, lo informa como ya aplicado. Si un candidato
-desplazaria otra accion, no lo toca.
+El nombre del addon es obligatorio para evitar aplicar defaults del addon equivocado
+por descuido. Solo intenta aplicar candidatos que la validacion nativa marca como
+libres. Si el binding ya pertenece a la misma accion, lo informa como ya aplicado.
+Si un candidato desplazaria otra accion, no lo toca.
+
+## Contrato para addons EZO
+
+Los addons de la familia EZO no deberian llamar directamente a
+`CreateDefaultActionBind`. La ruta recomendada es registrar sus candidatos con
+`RegisterAddonDefaults` y dejar que `EZOKeybinds` valide colisiones y aplique solo
+bindings seguros.
+
+Los fallbacks son parte del contrato: cada accion puede declarar un `preferred` y
+una lista ordenada de `fallbacks` por dispositivo. `EZOKeybinds` probara primero el
+preferido y despues los fallbacks hasta encontrar una opcion libre o ya asignada a
+la misma accion.
 
 ## Pruebas cerradas
 

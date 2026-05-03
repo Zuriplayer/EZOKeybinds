@@ -4,8 +4,8 @@
 ## Title: E|cB040FFZ|rOKeybinds
 ## Description: Enables native keybinding chording in ESO, allowing modifier combinations (Ctrl, Alt, Shift, Command) to be assigned directly from the Controls menu to any existing bindable action without additional configuration.
 ## Author: @Zuriplayer
-## Version: 1.0.14
-## AddOnVersion: 10014
+## Version: 1.0.15
+## AddOnVersion: 10015
 ## APIVersion: 101049 101050
 ## OptionalDependsOn: LibDebugLogger DebugLogViewer
 

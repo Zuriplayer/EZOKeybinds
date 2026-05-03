@@ -2,8 +2,8 @@ EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
 
 EZOKeybinds.name = "EZOKeybinds"
-EZOKeybinds.version = "1.0.14"
-EZOKeybinds.addOnVersion = 10014
+EZOKeybinds.version = "1.0.15"
+EZOKeybinds.addOnVersion = 10015
 EZOKeybinds._enabled = false
 EZOKeybinds._retrying = false
 
@@ -22,6 +22,7 @@ local pairs = pairs
 local string_format = string.format
 local table_concat = table.concat
 local table_insert = table.insert
+local table_sort = table.sort
 local zo_callLater = zo_callLater
 local tostring = tostring
 local type = type
@@ -204,6 +205,13 @@ local function FindActionIndices(actionName)
         return nil
     end
 
+    if type(GetNumActionLayers) ~= "function"
+        or type(GetActionLayerInfo) ~= "function"
+        or type(GetActionLayerCategoryInfo) ~= "function"
+        or type(GetActionInfo) ~= "function" then
+        return nil, nil, nil, "native-api-missing"
+    end
+
     for layerIndex = 1, GetNumActionLayers() do
         local _, numCategories = GetActionLayerInfo(layerIndex)
 
@@ -265,7 +273,12 @@ local function ValidateBindingCandidate(actionName, device, bindingName, candida
         conflict = nil,
     }
 
-    local layerIndex, categoryIndex, actionIndex = FindActionIndices(actionName)
+    local layerIndex, categoryIndex, actionIndex, findStatus = FindActionIndices(actionName)
+    if findStatus == "native-api-missing" then
+        result.status = "native-api-missing"
+        return result
+    end
+
     if not layerIndex then
         result.status = "missing-action"
         return result
@@ -421,6 +434,7 @@ function EZOKeybinds:ValidateAddonDefaults(addonName)
             validation.totalCandidates = validation.totalCandidates + 1
             if status == "ok" or status == "own-action" then validation.ok = validation.ok + 1 end
             if status == "blocked" then validation.blocked = validation.blocked + 1 end
+            if status == "native-api-missing" then validation.blocked = validation.blocked + 1 end
             if status == "missing-action" then validation.missing = validation.missing + 1 end
             if status == "unsupported-binding" then validation.unsupported = validation.unsupported + 1 end
         end
@@ -437,8 +451,16 @@ function EZOKeybinds:ValidateAllAddonDefaults()
         ok = 0,
         blocked = 0,
     }
+    local addonNames = {}
 
     for addonName in pairs(self.defaultRegistry) do
+        table_insert(addonNames, addonName)
+    end
+
+    table_sort(addonNames)
+
+    for index = 1, #addonNames do
+        local addonName = addonNames[index]
         local validation = self:ValidateAddonDefaults(addonName)
 
         table_insert(all.addons, validation)
@@ -508,6 +530,7 @@ function EZOKeybinds:ApplySafeDefaults(addonName)
                         local candidateStatus = candidates[candidateIndex].status
                         if candidateStatus == "missing-action" then result.missing = result.missing + 1 end
                         if candidateStatus == "unsupported-binding" then result.unsupported = result.unsupported + 1 end
+                        if candidateStatus == "native-api-missing" then result.errors = result.errors + 1 end
                     end
                 end
             end
@@ -637,7 +660,12 @@ function EZOKeybinds:RegisterSlashCommands()
         if command == "defaults" then
             self:DebugDefaultValidation()
         elseif command == "apply-defaults" then
-            self:DebugApplySafeDefaults(rest ~= "" and rest or "EZOTools")
+            if rest == "" then
+                Print("EZOKeybinds: indique el addon registrado. Ejemplo: /ezokeybinds apply-defaults EZOTools")
+                return
+            end
+
+            self:DebugApplySafeDefaults(rest)
         else
             Print("EZOKeybinds: use /ezokeybinds defaults or /ezokeybinds apply-defaults <addon>")
         end
