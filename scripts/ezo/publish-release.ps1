@@ -3,7 +3,7 @@ param(
     [string] $ConfigPath,
     [string] $ReleaseWebhookUrl = $env:EZO_CODEX_RELEASES,
     [string] $DownloadWebhookUrl = $env:EZO_CODEX_DOWNLOADS,
-    [string] $AnnouncementWebhookUrl = $env:EZO_CODEX_ANNOUNCEMENTS,
+    [string] $AnnouncementWebhookUrl = $env:EZO_CODEX_ANNOUNCER,
     [string] $CodexLogWebhookUrl = $env:CODEX_LOG,
     [string] $Note = "Release prepared from GitHub Actions.",
     [switch] $PublishDownload,

@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string] $ConfigPath,
-    [string] $WebhookUrl = $env:EZO_CODEX_ANNOUNCEMENTS,
+    [string] $WebhookUrl = $env:EZO_CODEX_ANNOUNCER,
     [string] $Note = "Addon update available.",
     [switch] $DryRun
 )

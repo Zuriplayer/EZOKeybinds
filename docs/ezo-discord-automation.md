@@ -66,7 +66,7 @@ Crear estos secretos en el repositorio:
 - `EZO_CODEX_RELEASES`: webhook de `#releases`
 - `EZO_CODEX_STATUS`: webhook de `#addon-status`
 - `EZO_CODEX_BETA_BUILDS`: webhook de `#beta-builds`
-- `EZO_CODEX_ANNOUNCEMENTS`: webhook de `#announcements`
+- `EZO_CODEX_ANNOUNCER`: webhook de `#announcements`
 - `CODEX_LOG`: webhook de `#codex-log`
 
 ## Uso recomendado de canales

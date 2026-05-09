@@ -41,7 +41,7 @@ jobs:
         env:
           EZO_CODEX_RELEASES: ${{ secrets.EZO_CODEX_RELEASES }}
           EZO_CODEX_DOWNLOADS: ${{ secrets.EZO_CODEX_DOWNLOADS }}
-          EZO_CODEX_ANNOUNCEMENTS: ${{ secrets.EZO_CODEX_ANNOUNCEMENTS }}
+          EZO_CODEX_ANNOUNCER: ${{ secrets.EZO_CODEX_ANNOUNCER }}
           CODEX_LOG: ${{ secrets.CODEX_LOG }}
           EZO_RELEASE_NOTE: ${{ inputs.note }}
           EZO_PUBLISH_DOWNLOAD: ${{ inputs.publish_download }}
