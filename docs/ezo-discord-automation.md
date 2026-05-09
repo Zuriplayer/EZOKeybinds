@@ -80,6 +80,49 @@ Crear estos secretos en el repositorio:
 
 El criterio profesional es no duplicar binarios en varios canales. El ZIP va en `#beta-builds` para pruebas y en `#downloads` para descargas finales.
 
+## Procedimiento de publicacion
+
+La publicacion en Discord no forma parte de cada commit o push. Se trata como un paso separado de release.
+
+Flujo normal de trabajo:
+
+```text
+editar -> probar -> commit -> push
+```
+
+Flujo de publicacion cuando el cambio ya es util para jugadores:
+
+```text
+validar ZIP limpio -> pedir confirmacion -> lanzar workflow Discord
+```
+
+Codex debe proponer una publicacion en Discord solo cuando se cumplan estas condiciones:
+
+- El cambio aporta una mejora funcional real, una correccion importante o una version estable para jugadores.
+- El addon esta probado localmente o en juego con un resultado razonable.
+- El ZIP limpio se genera correctamente y contiene solo archivos runtime.
+- No quedan cambios sin commit relacionados con la publicacion.
+- La rama que se va a publicar esta en `main` o ya ha sido fusionada.
+
+Codex no debe proponer publicacion en Discord para cambios menores de documentacion, limpieza interna, pruebas parciales, ajustes de automatizacion o commits sin impacto practico para jugadores.
+
+Antes de lanzar cualquier workflow que publique en Discord, Codex debe pedir confirmacion explicita con una opcion clara:
+
+```text
+Este cambio parece publicable. Que quieres hacer?
+- status
+- beta
+- release + download
+- no publicar
+```
+
+## Que workflow usar
+
+- Usar `EZO addon status` cuando solo cambie el estado, fase o visibilidad del addon.
+- Usar `EZO beta build` cuando se quiera que testers prueben un cambio nuevo, todavia no definitivo.
+- Usar `EZO release` con `publish_download=true` cuando la version se considere funcional, segura y lista para descarga.
+- Mantener `publish_announcement=true` solo cuando el mensaje sea util para jugadores/testers, no para ruido tecnico.
+
 ## Workflows
 
 ### `ezo-status.yml`
