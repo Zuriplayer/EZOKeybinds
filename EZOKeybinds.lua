@@ -2,24 +2,78 @@ EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
 
 EZOKeybinds.name = "EZOKeybinds"
-EZOKeybinds.version = "1.0.8"
-EZOKeybinds.addOnVersion = 10008
+EZOKeybinds.version = "1.0.21"
+EZOKeybinds.addOnVersion = 10021
 EZOKeybinds._enabled = false
 EZOKeybinds._retrying = false
 
 local EVENT_MANAGER = EVENT_MANAGER
-local zo_callLater = zo_callLater
+local SLASH_COMMANDS = SLASH_COMMANDS
+local _G = _G
+local string_format = string.format
+local tostring = tostring
 local type = type
+local zo_callLater = zo_callLater
 
 local RETRY_DELAYS_MS = { 500, 1500, 3000 }
+
+local function Print(message)
+    local text = tostring(message)
+    local chatSystem = _G.CHAT_SYSTEM
+
+    if type(chatSystem) == "table" and type(chatSystem.AddMessage) == "function" then
+        chatSystem:AddMessage(text)
+    elseif type(_G.d) == "function" then
+        _G.d(text)
+    end
+end
+
+function EZOKeybinds:IsChordingEnabled()
+    return self._enabled == true
+end
+
+function EZOKeybinds:GetStatusText()
+    local status = "pending"
+
+    if self._enabled then
+        status = "enabled"
+    elseif self._retrying then
+        status = "retrying"
+    end
+
+    return string_format(
+        "EZOKeybinds: chording=%s version=%s addonVersion=%s",
+        status,
+        tostring(self.version),
+        tostring(self.addOnVersion)
+    )
+end
+
+function EZOKeybinds:RegisterSlashCommands()
+    if type(SLASH_COMMANDS) ~= "table" then
+        return false
+    end
+
+    SLASH_COMMANDS["/ezokeybinds"] = function(args)
+        local command = tostring(args or ""):gsub("^%s+", ""):gsub("%s+$", ""):lower()
+
+        if command == "" or command == "status" then
+            Print(self:GetStatusText())
+        else
+            Print("EZOKeybinds: use /ezokeybinds status")
+        end
+    end
+
+    return true
+end
 
 local function TryEnableOn(manager)
     if type(manager) ~= "table" then
         return false
     end
 
-    -- No conviene depender de una sola ruta. En cliente real esta parte ha
-    -- cambiado entre versiones, asi que probamos la API nueva y la compatible.
+    -- ESO ha expuesto esta capacidad por rutas distintas segun version/cliente.
+    -- Probamos las conocidas sin asumir que todas existan.
     if type(manager.SetChordingAlwaysEnabled) == "function" then
         manager:SetChordingAlwaysEnabled(true)
         return true
@@ -40,10 +94,8 @@ local function EnableChording()
 
     local enabled = false
 
-    -- Algunos clientes exponen el dialogo y el manager general por rutas
-    -- distintas. Probamos todas las disponibles y dejamos que ESO decida.
-    enabled = TryEnableOn(KEYBINDINGS_MANAGER) or enabled
-    enabled = TryEnableOn(KEYBINDING_MANAGER) or enabled
+    enabled = TryEnableOn(_G.KEYBINDINGS_MANAGER) or enabled
+    enabled = TryEnableOn(_G.KEYBINDING_MANAGER) or enabled
 
     if enabled then
         EZOKeybinds._enabled = true
@@ -65,8 +117,8 @@ local function ScheduleRetry(delayIndex)
         return
     end
 
-    -- A veces ESO termina de preparar estos managers un poco mas tarde.
-    -- Reintentamos en silencio para no llenar el chat ni molestar al jugador.
+    -- Algunos managers aparecen tarde durante la carga del personaje.
+    -- Reintentamos en silencio para no generar ruido en chat.
     zo_callLater(function()
         if not EnableChording() then
             ScheduleRetry(delayIndex + 1)
@@ -89,6 +141,7 @@ local function OnAddonLoaded(_, addonName)
     end
 
     EVENT_MANAGER:UnregisterForEvent(EZOKeybinds.name, EVENT_ADD_ON_LOADED)
+    EZOKeybinds:RegisterSlashCommands()
     RetryEnableChording()
 end
 
