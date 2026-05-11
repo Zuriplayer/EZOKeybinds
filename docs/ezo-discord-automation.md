@@ -116,6 +116,20 @@ Este cambio parece publicable. Que quieres hacer?
 - no publicar
 ```
 
+Los workflows tienen una barrera tecnica:
+
+```text
+confirm_publish = DRY_RUN
+```
+
+Con el valor por defecto no se envia nada a Discord. Para publicar de verdad, el campo debe escribirse exactamente como:
+
+```text
+PUBLISH
+```
+
+En el workflow de release, `publish_download` y `publish_announcement` estan desactivados por defecto. Activarlos requiere autorizacion expresa.
+
 ## Que workflow usar
 
 - Usar `EZO addon status` cuando solo cambie el estado, fase o visibilidad del addon.
