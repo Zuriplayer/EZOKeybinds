@@ -20,4 +20,6 @@ Este proyecto es un addon para The Elder Scrolls Online dentro de la familia EZO
 - Antes de lanzar un workflow de Discord, pedir confirmacion explicita indicando la opcion: `status`, `beta`, `release + download` o `no publicar`.
 - Los workflows de Discord tienen `confirm_publish` con valor por defecto `DRY_RUN`; solo publicar si el usuario ha autorizado explicitamente y se escribe exactamente `PUBLISH`.
 - No activar `publish_download` ni `publish_announcement` salvo autorizacion expresa del usuario.
+- El contenido publico (releases, announcements, status) es siempre en ingles, **excepto `#downloads`, que es bilingue (ingles + espanol)**. Es la unica excepcion a la regla de idioma.
+- El workflow de release acepta `download_note` (texto bilingue EN+ES) para `#downloads`; si se deja vacio, reutiliza `note` tal cual (quedaria solo en ingles).
 - Para detalles operativos, usar `docs/ezo-discord-automation.md`.
