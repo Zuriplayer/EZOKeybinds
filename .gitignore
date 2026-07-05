@@ -3,3 +3,13 @@ dist/
 .idea/
 Thumbs.db
 .DS_Store
+
+# Internal AI-agent instructions and dev-process notes.
+# Kept locally for Claude Code/Codex to read, never tracked in git.
+CLAUDE.md
+AGENTS.md
+.claude/
+docs/
+
+# Local-only PowerShell dev tooling, never invoked by GitHub Actions workflows.
+tools/

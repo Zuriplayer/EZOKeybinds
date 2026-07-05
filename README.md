@@ -1,60 +1,48 @@
 # EZOKeybinds
 
-EZOKeybinds habilita el chording nativo de keybindings de ESO para permitir combinaciones con modificadores como Ctrl, Alt, Shift y Command desde el menu de controles del juego.
+Enables native keybinding chording in *The Elder Scrolls Online*, so you can assign modifier combinations (Ctrl, Alt, Shift, Command) to any existing bindable action directly from the Controls menu.
 
-El addon funciona por si solo. No anade interfaz propia, panel de configuracion, SavedVariables ni keybinds propios. Su unico objetivo runtime es activar la capacidad nativa de chording cuando el manager de keybindings esta disponible.
+🇪🇸 Prefieres español? Lee el [README en español](README.es.md).
 
-## Uso
+📢 For support, feedback, bug reports or suggestions, join our Discord: https://discord.gg/ekw8zUAcRm
 
-Con solo este addon activo:
+## ✨ What it does
 
-- Cargar personaje o ejecutar `/reloadui`.
-- Abrir el menu nativo de Controles de ESO.
-- Asignar combinaciones de teclado con modificadores, por ejemplo `Ctrl+Alt+tecla`, sobre acciones bindables existentes.
-- Usar `/ezokeybinds status` para comprobar si el chording quedo activo.
+ESO can bind modifier combinations to actions, but the Controls menu only allows it once chording is enabled. EZOKeybinds turns that native capability on — no extra UI, no settings panel, no SavedVariables, nothing else running in the background.
 
-## Comandos
+## 🎮 How to use it
 
-```text
-/ezokeybinds status
-```
+1. Load a character, or run `/reloadui`.
+2. Open the native **Controls** menu.
+3. Assign a modifier combination (e.g. `Ctrl+Alt+key`) to any bindable action, as you would any other keybind.
+4. Run `/ezokeybinds status` in chat to confirm chording is active.
 
-El comando muestra un resumen corto en chat. No usa LibDebugLogger ni DebugLogViewer.
+## What it doesn't do
 
-## Lo que no hace
+EZOKeybinds doesn't manage other addons' default keybinds, doesn't reset your bindings, and doesn't apply any recommended shortcuts on its own. Assigning and keeping your own combinations is always done by you, from the native Controls menu.
 
-EZOKeybinds no gestiona defaults de otros addons, no restablece bindings y no aplica atajos recomendados desde LAM.
+## Requirements
 
-Segun la guia familiar actual, cada addon funcional debe:
+- The Elder Scrolls Online (PC)
+- No other addons required
 
-- Declarar sus acciones bindables en su propio `Bindings.xml`.
-- Registrar sus defaults nativos localmente con `CreateDefaultActionBind` si los necesita.
-- Hacerlo despues de `EVENT_KEYBINDINGS_LOADED`.
-- Mantener esa logica en su propio modulo, por ejemplo `modules/keybinds.lua`.
+## Installation
 
-EZOKeybinds tampoco llama a `BindKeyToAction`. Esa API puede ser privada/protegida en cliente real y no debe usarse desde addons funcionales normales.
+1. Download the latest version from [Releases](../../releases) (or clone this repository).
+2. Copy the `EZOKeybinds` folder into your ESO AddOns folder:
+   `Documents/Elder Scrolls Online/live/AddOns/`
+3. Enable the addon from the in-game Add-Ons screen.
 
-## Relacion con la familia EZO
+## Reporting issues
 
-`EZOBindings OLD` queda pausado como historico local. No es dependencia de EZOKeybinds.
+Please include when possible: addon version, ESO client language, and reproduction steps.
 
-Los addons EZO no deben depender de EZOKeybinds para registrar o restablecer controles. Pueden instalarlo de forma independiente si quieren permitir al jugador asignar combinaciones con modificadores desde el menu nativo de ESO.
+## Status
 
-## Pruebas cerradas
+Current version: **1.0.21** — closed beta testing.
 
-- El addon aparece habilitado en la lista de addons.
-- No muestra mensajes en chat al cargar.
-- `/ezokeybinds status` responde sin otros addons.
-- En teclado, el menu de Controles permite asignar combinaciones con modificadores.
-- En gamepad, no cambia navegacion, controles ni binds.
-- Tras `/reloadui`, las combinaciones asignadas manualmente siguen disponibles.
+## License
 
-## Compatibilidad
+MIT — see [LICENSE](LICENSE).
 
-La referencia tecnica principal para APIs de ESO es UESP ESO Data:
-
-https://esodata.uesp.net/current/index.html
-
-UESP `current` puede ir por detras del manifest del addon (`101049 101050`). Si hay discrepancia, se prioriza no inventar APIs y validar en cliente real antes de ampliar funcionalidad.
-
-Por compatibilidad, el addon intenta activar chording sobre los managers que existan en tiempo de ejecucion (`KEYBINDINGS_MANAGER` y `KEYBINDING_MANAGER`) y acepta `SetChordingAlwaysEnabled` o `SetChordingEnabled` si estan presentes. Todas las llamadas estan protegidas por comprobacion de tipo.
+Developed and maintained by Zuriplayer.
