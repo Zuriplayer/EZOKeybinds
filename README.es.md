@@ -21,6 +21,12 @@ ESO permite asignar combinaciones con modificadores a acciones, pero el menu de 
 
 EZOKeybinds no gestiona los defaults de otros addons, no restablece tus bindings y no aplica ningun atajo recomendado por su cuenta. Asignar y mantener tus propias combinaciones siempre lo haces tu, desde el menu nativo de Controles.
 
+## 🎮 Mando / Gamepad
+
+EZOKeybinds activa el chording de teclado (combinaciones con Ctrl, Shift, Alt). El sistema de entrada del mando en ESO es completamente independiente y los addons no pueden ampliarlo: no existe ninguna API publica para registrar nuevas combinaciones de dos botones de gamepad.
+
+Si usas mando y quieres combinaciones tipo LB+A, la solucion recomendada es usar **Steam Input** (gratuito, integrado en Steam) o **reWASD** para mapear esa combinacion a una tecla normal del teclado, y despues asignar esa tecla en el menu nativo de Controles como cualquier otro keybind.
+
 ## Requisitos
 
 - The Elder Scrolls Online (PC)
@@ -39,7 +45,7 @@ Incluye si puedes: version del addon, idioma del cliente de ESO y pasos para rep
 
 ## Estado
 
-Version actual: **1.0.21** — beta cerrada.
+Version actual: **1.0.22** — beta cerrada.
 
 ## Licencia
 

@@ -21,6 +21,12 @@ ESO can bind modifier combinations to actions, but the Controls menu only allows
 
 EZOKeybinds doesn't manage other addons' default keybinds, doesn't reset your bindings, and doesn't apply any recommended shortcuts on its own. Assigning and keeping your own combinations is always done by you, from the native Controls menu.
 
+## 🎮 Gamepad
+
+EZOKeybinds activates keyboard chording (Ctrl, Shift, Alt combinations). The gamepad input system in ESO is entirely separate and is not extensible by addons — there is no public API to register new two-button gamepad combinations.
+
+If you use a controller and want chord-style combinations (e.g. LB+A), the recommended approach is to use **Steam Input** (free, built into Steam) or **reWASD** to map that combination to a regular keyboard key, then assign that key in the native Controls menu as you would any other keybind.
+
 ## Requirements
 
 - The Elder Scrolls Online (PC)
@@ -39,7 +45,7 @@ Please include when possible: addon version, ESO client language, and reproducti
 
 ## Status
 
-Current version: **1.0.21** — closed beta testing.
+Current version: **1.0.22** — closed beta testing.
 
 ## License
 
