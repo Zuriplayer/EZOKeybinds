@@ -3,7 +3,7 @@
 Enables native keybinding chording in *The Elder Scrolls Online*, so you can assign modifier combinations (Ctrl, Alt, Shift, Command) to any existing bindable action directly from the Controls menu.
 
 ¿Prefieres español? Lee el [README en español](README.es.md).
-📢 For support, feedback, bug reports or suggestions, join our Discord: https://discord.gg/gn4MutdhcB
+📢 For support, feedback, bug reports or suggestions, join our Discord: https://discord.gg/ekw8zUAcRm
 
 ## ✨ What it does
 
