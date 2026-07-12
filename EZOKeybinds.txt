@@ -2,11 +2,12 @@
 # Revisar APIVersion cuando ESO publique una version nueva.
 
 ## Title: E|cB040FFZ|rOKeybinds
-## Description: Enables native keybinding chording (Ctrl, Alt, Shift combos) from the Controls menu. No libraries required.
+## Description: Enables native keybinding chording (Ctrl, Alt, Shift combos) from the Controls menu. No required libraries.
 ## Author: @Zuriplayer
 ## Version: 1.0.22
 ## AddOnVersion: 10022
 ## APIVersion: 101049 101050
+## OptionalDependsOn: LibDebugLogger DebugLogViewer
 
 lang/$(language).lua
 EZOKeybinds.lua

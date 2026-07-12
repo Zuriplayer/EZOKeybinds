@@ -1,5 +1,5 @@
 -- EZOKeybinds — activa la opción nativa de combinaciones con modificadores en ESO.
--- Sin interfaces propias, sin guardar datos, sin dependencias externas.
+-- Sin interfaces propias, sin guardar datos, sin dependencias obligatorias.
 
 EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
@@ -19,6 +19,7 @@ local string_format  = string.format
 local tostring       = tostring
 local type           = type
 local zo_callLater   = zo_callLater
+local LOGGER_TAG     = "EZOKeybinds"
 
 -- Cuánto tiempo esperamos entre cada intento (en milisegundos):
 -- medio segundo, segundo y medio, tres segundos.
@@ -51,6 +52,37 @@ local function Print(message)
     elseif type(_G.d) == "function" then
         _G.d(text)
     end
+end
+
+local function LogInfo(message)
+    local lib = _G.LibDebugLogger
+    if type(lib) ~= "function" and type(lib) ~= "table" then
+        return false
+    end
+
+    if not EZOKeybinds._debugLogger and type(lib) == "function" then
+        local ok, logger = pcall(lib, LOGGER_TAG)
+        if ok then
+            EZOKeybinds._debugLogger = logger
+        end
+    end
+    if not EZOKeybinds._debugLogger and type(lib) == "table" and type(lib.Create) == "function" then
+        local ok, logger = pcall(function()
+            return lib:Create(LOGGER_TAG)
+        end)
+        if ok then
+            EZOKeybinds._debugLogger = logger
+        end
+    end
+
+    local logger = EZOKeybinds._debugLogger
+    if logger and type(logger.Info) == "function" then
+        return pcall(function()
+            logger:Info(tostring(message or ""))
+        end)
+    end
+
+    return false
 end
 
 -- Nos dice si el chording está activo en este momento.
@@ -135,6 +167,7 @@ local function EnableChording()
     if enabled then
         EZOKeybinds._enabled  = true
         EZOKeybinds._retrying = false
+        LogInfo("Native keybinding chording enabled.")
         return true
     end
 
@@ -152,6 +185,7 @@ local function ScheduleRetry(delayIndex)
     -- Si ya agotamos todos los intentos, paramos sin hacer ruido.
     if delayIndex > #RETRY_DELAYS_MS then
         EZOKeybinds._retrying = false
+        LogInfo("Native keybinding chording manager not available after retries.")
         return
     end
 
@@ -170,6 +204,7 @@ local function RetryEnableChording()
     end
 
     EZOKeybinds._retrying = true
+    LogInfo("Native keybinding chording not ready; scheduling retries.")
     ScheduleRetry(1)
 end
 
