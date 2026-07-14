@@ -4,6 +4,7 @@
     "id": "ezokeybinds",
     "name": "EZOKeybinds",
     "version": "1.0.21",
+    "stage": "beta",
     "status": "beta",
     "phase": "closed-testing",
     "visibility": "public",
