@@ -3,7 +3,7 @@
   "addon": {
     "id": "ezokeybinds",
     "name": "EZOKeybinds",
-    "version": "1.0.21",
+    "version": "1.0.22",
     "stage": "stable",
     "status": "beta",
     "phase": "closed-testing",
@@ -11,7 +11,7 @@
     "manifest": "EZOKeybinds.txt",
     "package": {
       "rootFolderName": "EZOKeybinds",
-      "zipName": "EZOKeybinds_v1.0.21.zip",
+      "zipName": "EZOKeybinds_v1.0.22.zip",
       "outputPath": "dist",
       "include": [
         "*.txt",
