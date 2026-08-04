@@ -13,3 +13,7 @@ docs/
 
 # Local-only PowerShell dev tooling, never invoked by GitHub Actions workflows.
 tools/
+
+# Keep shared AI project instructions versioned.
+!AGENTS.md
+!CLAUDE.md
