@@ -7,18 +7,23 @@ Enables native keybinding chording in *The Elder Scrolls Online*, so you can ass
 
 ## ✨ What it does
 
-ESO can bind modifier combinations to actions, but the Controls menu only allows it once chording is enabled. EZOKeybinds turns that native capability on — no extra UI, no settings panel, no SavedVariables, nothing else running in the background.
+ESO can bind modifier combinations to actions, but the Controls menu only allows it once chording is enabled. EZOKeybinds turns that native capability on.
+
+For EZO-family actions shown under **Controls > General > EZO AddOns**, it also adds a small checkbox to mark a binding as shared across characters on the same Windows user profile. Shared bindings are restored only through ESO's protected-call path when the client exposes it.
 
 ## 🎮 How to use it
 
 1. Load a character, or run `/reloadui`.
 2. Open the native **Controls** menu.
 3. Assign a modifier combination (e.g. `Ctrl+Alt+key`) to any bindable action, as you would any other keybind.
-4. Run `/ezokeybinds status` in chat to confirm chording is active.
+4. For EZO actions, tick the checkbox on the row if that binding should be shared across characters.
+5. Run `/ezokeybinds status` in chat to confirm chording is active.
 
 ## What it doesn't do
 
-EZOKeybinds doesn't manage other addons' default keybinds, doesn't reset your bindings, and doesn't apply any recommended shortcuts on its own. Assigning and keeping your own combinations is always done by you, from the native Controls menu.
+EZOKeybinds doesn't manage non-EZO addon keybinds, doesn't reset your bindings, and doesn't apply any recommended shortcuts on its own. Assigning and keeping your own combinations is always done by you, from the native Controls menu.
+
+Shared EZO bindings are local to the Windows user profile, not stored as an ESO server-side account setting.
 
 ## 🎮 Gamepad
 
@@ -44,7 +49,7 @@ Please include when possible: addon version, ESO client language, and reproducti
 
 ## Status
 
-Current version: **1.0.22** — closed beta testing.
+Current version: **1.0.24** — closed beta testing.
 
 ## License
 

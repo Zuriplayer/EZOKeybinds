@@ -37,7 +37,8 @@ Este proyecto es un addon para The Elder Scrolls Online dentro de la familia EZO
 ## Notas tecnicas (uso interno)
 
 - Relacion con la familia: `EZOBindings OLD` queda pausado como historico local, no es dependencia de EZOKeybinds. Los addons EZO no deben depender de EZOKeybinds para registrar o restablecer controles.
-- El addon no llama a `BindKeyToAction` (API privada/protegida en cliente real); intenta activar chording sobre los managers presentes en runtime (`KEYBINDINGS_MANAGER`, `KEYBINDING_MANAGER`) aceptando `SetChordingAlwaysEnabled` o `SetChordingEnabled`, con comprobacion de tipo en todas las llamadas.
+- El addon no llama directamente a `BindKeyToAction` ni `UnbindAllKeysFromAction`; si el cliente las expone como protegidas, la restauracion de bindings compartidos debe pasar por `CallSecureProtected` tras comprobar `IsProtectedFunction`. No usar `UnbindKeyFromAction`.
+- El chording se activa sobre los managers presentes en runtime (`KEYBINDINGS_MANAGER`, `KEYBOARD_KEYBINDING_MANAGER`, `KEYBINDING_MANAGER`) aceptando `SetChordingAlwaysEnabled` o `SetChordingEnabled`, con comprobacion de tipo en todas las llamadas.
 - Referencia tecnica principal para APIs de ESO: https://esodata.uesp.net/current/index.html. Puede ir por detras del manifest (`101049 101050`); ante discrepancia, no inventar API y validar en cliente real.
 
 ## Checklist de pruebas cerradas

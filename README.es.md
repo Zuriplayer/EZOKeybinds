@@ -7,18 +7,23 @@ Prefer English? Read the [README in English](README.md).
 
 ## ✨ Que hace
 
-ESO permite asignar combinaciones con modificadores a acciones, pero el menu de Controles solo lo permite una vez que el chording esta activado. EZOKeybinds activa esa capacidad nativa — sin interfaz propia, sin panel de ajustes, sin SavedVariables, sin nada mas ejecutandose de fondo.
+ESO permite asignar combinaciones con modificadores a acciones, pero el menu de Controles solo lo permite una vez que el chording esta activado. EZOKeybinds activa esa capacidad nativa.
+
+Para acciones de la familia EZO mostradas en **Controles > General > EZO AddOns**, tambien anade una pequena casilla para marcar un binding como compartido entre personajes del mismo perfil de usuario de Windows. Los bindings compartidos solo se restauran mediante la ruta protegida de ESO cuando el cliente la expone.
 
 ## 🎮 Como usarlo
 
 1. Carga un personaje, o ejecuta `/reloadui`.
 2. Abre el menu nativo de **Controles**.
 3. Asigna una combinacion con modificador (por ejemplo `Ctrl+Alt+tecla`) a cualquier accion bindable, igual que cualquier otro keybind.
-4. Ejecuta `/ezokeybinds status` en el chat para confirmar que el chording esta activo.
+4. En acciones EZO, marca la casilla de la fila si ese binding debe compartirse entre personajes.
+5. Ejecuta `/ezokeybinds status` en el chat para confirmar que el chording esta activo.
 
 ## Lo que no hace
 
-EZOKeybinds no gestiona los defaults de otros addons, no restablece tus bindings y no aplica ningun atajo recomendado por su cuenta. Asignar y mantener tus propias combinaciones siempre lo haces tu, desde el menu nativo de Controles.
+EZOKeybinds no gestiona keybinds de addons no EZO, no restablece tus bindings y no aplica ningun atajo recomendado por su cuenta. Asignar y mantener tus propias combinaciones siempre lo haces tu, desde el menu nativo de Controles.
+
+Los bindings EZO compartidos son locales al perfil de usuario de Windows, no una preferencia de cuenta ESO guardada en servidor.
 
 ## 🎮 Mando / Gamepad
 
@@ -44,7 +49,7 @@ Incluye si puedes: version del addon, idioma del cliente de ESO y pasos para rep
 
 ## Estado
 
-Version actual: **1.0.22** — beta cerrada.
+Version actual: **1.0.24** — beta cerrada.
 
 ## Licencia
 
