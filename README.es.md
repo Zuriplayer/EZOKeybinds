@@ -26,7 +26,7 @@ La seccion **Valores predeterminados de teclas EZO** muestra todos los slots asi
 
 EZOKeybinds no gestiona keybinds de addons no EZO ni aplica valores predeterminados a acciones que no son EZO. El boton de restauracion limpia los cuatro slots de las acciones EZO activadas, devuelve los valores de teclado al slot 1 y los valores EZO de gamepad al slot 2, y deja vacios los slots 3 y 4. Los defaults de teclado se omiten si ya pertenecen a acciones que no son EZO. Los defaults de gamepad siguen el comportamiento manual por capas de ESO, por lo que su uso en otra capa no bloquea el binding EZO.
 
-Los bindings EZO compartidos son locales al perfil de usuario de Windows, no una preferencia de cuenta ESO guardada en servidor.
+Los bindings EZO compartidos son locales al perfil de usuario de Windows, no una preferencia de cuenta ESO guardada en servidor. Durante las actualizaciones del cliente, EZOKeybinds espera a que termine el ciclo de carga de teclas de ESO antes de restaurar acciones compartidas e ignora snapshots transitorios vacios que borrarian una asignacion valida.
 
 ## Auditoria de valores predeterminados de la familia EZO
 
@@ -68,7 +68,7 @@ Incluye si puedes: version del addon, idioma del cliente de ESO y pasos para rep
 
 ## Estado
 
-Version actual: **1.0.27** — beta cerrada.
+Version actual: **1.0.28** — beta cerrada.
 
 ## Licencia
 

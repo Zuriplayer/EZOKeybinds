@@ -5,13 +5,15 @@ EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
 
 EZOKeybinds.name         = "EZOKeybinds"
-EZOKeybinds.version      = "1.0.27"
-EZOKeybinds.addOnVersion = 10027
+EZOKeybinds.version      = "1.0.28"
+EZOKeybinds.addOnVersion = 10028
 EZOKeybinds._enabled     = false  -- si el chording ya está activo
 EZOKeybinds._retrying    = false  -- si estamos esperando para volver a intentarlo
 EZOKeybinds._uiHooked    = false
 EZOKeybinds._restoring   = false
 EZOKeybinds._lamRegistered = false
+EZOKeybinds._keybindingsReady = false
+EZOKeybinds._keybindingsLoadGeneration = 0
 
 -- Guardamos referencias directas a las cosas que vamos a usar,
 -- así el juego no tiene que buscarlas en la tabla global cada vez que las necesitamos.
@@ -43,6 +45,7 @@ local RESET_DIALOG_NAME = "EZOKEYBINDS_RESET_DEFAULTS"
 local bindKeyToAction
 local unbindAllKeysFromAction
 local resetDialogRegistered = false
+local KEYBINDINGS_SETTLE_DELAY_MS = 50
 
 -- Registro central usado por la auditoria y por el reset explicito. El reset
 -- confirmado coloca teclado en slot 1 y gamepad en slot 2. Los addons
@@ -627,6 +630,23 @@ local function IsSameBinding(a, b)
         and (a.mod4 or INVALID_KEY) == (b.mod4 or INVALID_KEY)
 end
 
+local function HasAssignedBinding(bindings)
+    if type(bindings) ~= "table" then
+        return false
+    end
+
+    for _, binding in pairs(bindings) do
+        if type(binding) == "table"
+            and type(binding.keyCode) == "number"
+            and binding.keyCode ~= INVALID_KEY
+        then
+            return true
+        end
+    end
+
+    return false
+end
+
 function EZOKeybinds:SaveActionBindings(actionName, layerIndex, categoryIndex, actionIndex)
     if not IsEzoAction(actionName) or not EnsureSavedVariables() then
         return false
@@ -662,7 +682,7 @@ function EZOKeybinds:SetSharedAction(actionName, shared, layerIndex, categoryInd
 end
 
 function EZOKeybinds:SaveChangedBinding(layerIndex, categoryIndex, actionIndex)
-    if self._restoring then
+    if self._restoring or not self._keybindingsReady then
         return
     end
 
@@ -686,8 +706,16 @@ function EZOKeybinds:IsStoredActionCurrent(layerIndex, categoryIndex, actionInde
     return true
 end
 
-function EZOKeybinds:ApplyStoredActionBindings(layerIndex, categoryIndex, actionIndex, storedBindings)
+function EZOKeybinds:ApplyStoredActionBindings(layerIndex, categoryIndex, actionIndex, storedBindings, preserveCurrentForEmptySnapshot)
     if type(storedBindings) ~= "table" or self:IsStoredActionCurrent(layerIndex, categoryIndex, actionIndex, storedBindings) then
+        return false
+    end
+
+    -- During a client update ESO can emit transient cleared-binding events
+    -- while rebuilding its defaults. Never let such an empty snapshot erase a
+    -- valid binding that the client or the owning addon has just restored.
+    if preserveCurrentForEmptySnapshot and not HasAssignedBinding(storedBindings) then
+        LogInfo("Empty shared binding snapshot ignored; current binding preserved.")
         return false
     end
 
@@ -729,7 +757,7 @@ function EZOKeybinds:ApplyStoredActionBindings(layerIndex, categoryIndex, action
     return true
 end
 
-function EZOKeybinds:RestoreSharedBindings()
+function EZOKeybinds:RestoreSharedBindings(preserveCurrentForEmptySnapshot)
     if not EnsureSavedVariables() then
         return false
     end
@@ -748,7 +776,13 @@ function EZOKeybinds:RestoreSharedBindings()
                 local actionName, _, isHidden = GetActionInfo(layerIndex, categoryIndex, actionIndex)
                 local actionBindings = actionName and not isHidden and sharedActions[actionName] and bindings[actionName]
                 if type(actionBindings) == "table"
-                    and self:ApplyStoredActionBindings(layerIndex, categoryIndex, actionIndex, actionBindings)
+                    and self:ApplyStoredActionBindings(
+                        layerIndex,
+                        categoryIndex,
+                        actionIndex,
+                        actionBindings,
+                        preserveCurrentForEmptySnapshot == true
+                    )
                 then
                     changed = changed + 1
                 end
@@ -759,6 +793,28 @@ function EZOKeybinds:RestoreSharedBindings()
     self._restoring = false
     LogInfo(string_format("Shared EZO keybindings restored. changed=%d", changed))
     return true
+end
+
+function EZOKeybinds:ScheduleSharedBindingsRestore()
+    self._keybindingsReady = false
+    self._keybindingsLoadGeneration = self._keybindingsLoadGeneration + 1
+    local generation = self._keybindingsLoadGeneration
+
+    local function RestoreAfterSettlement()
+        if generation ~= self._keybindingsLoadGeneration then
+            return
+        end
+
+        self:RestoreSharedBindings(true)
+        self._keybindingsReady = true
+        self:RequestSettingsRefresh()
+    end
+
+    if type(zo_callLater) == "function" then
+        zo_callLater(RestoreAfterSettlement, KEYBINDINGS_SETTLE_DELAY_MS)
+    else
+        RestoreAfterSettlement()
+    end
 end
 
 function EZOKeybinds:CountSharedActions()
@@ -1253,7 +1309,7 @@ local function OnPlayerActivated()
     EZOKeybinds:PushEzoActionLayer()
     RetryEnableChording()
     EZOKeybinds:RetryHookControlsPanel(1)
-    EZOKeybinds:RestoreSharedBindings()
+    EZOKeybinds:ScheduleSharedBindingsRestore()
     EVENT_MANAGER:UnregisterForEvent(EZOKeybinds.name, EVENT_PLAYER_ACTIVATED)
 end
 
@@ -1279,6 +1335,6 @@ EVENT_MANAGER:RegisterForEvent(
 if EVENT_KEYBINDINGS_LOADED then
     EVENT_MANAGER:RegisterForEvent(EZOKeybinds.name, EVENT_KEYBINDINGS_LOADED, function()
         EZOKeybinds:RetryHookControlsPanel(1)
-        EZOKeybinds:RestoreSharedBindings()
+        EZOKeybinds:ScheduleSharedBindingsRestore()
     end)
 end

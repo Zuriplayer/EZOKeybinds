@@ -26,7 +26,7 @@ The **EZO keybinding defaults** section shows every assigned slot for enabled EZ
 
 EZOKeybinds doesn't manage non-EZO addon keybinds or apply defaults to non-EZO actions. The explicit reset button clears all four slots of enabled EZO actions, restores keyboard defaults to slot 1 and EZO gamepad defaults to slot 2, and leaves slots 3 and 4 empty. Keyboard defaults are skipped when already owned by non-EZO actions. Gamepad defaults follow ESO's manual per-layer binding behavior, so use in another action layer does not block the EZO binding.
 
-Shared EZO bindings are local to the Windows user profile, not stored as an ESO server-side account setting.
+Shared EZO bindings are local to the Windows user profile, not stored as an ESO server-side account setting. During client updates, EZOKeybinds waits for ESO's keybinding load cycle to settle before restoring shared actions and ignores empty transitional snapshots that would erase a valid binding.
 
 ## EZO-family default keybind audit
 
@@ -68,7 +68,7 @@ Please include when possible: addon version, ESO client language, and reproducti
 
 ## Status
 
-Current version: **1.0.27** — closed beta testing.
+Current version: **1.0.28** — closed beta testing.
 
 ## License
 
