@@ -5,8 +5,8 @@ EZOKeybinds = EZOKeybinds or {}
 local EZOKeybinds = EZOKeybinds
 
 EZOKeybinds.name         = "EZOKeybinds"
-EZOKeybinds.version      = "1.0.28"
-EZOKeybinds.addOnVersion = 10028
+EZOKeybinds.version      = "1.0.29"
+EZOKeybinds.addOnVersion = 10029
 EZOKeybinds._enabled     = false  -- si el chording ya está activo
 EZOKeybinds._retrying    = false  -- si estamos esperando para volver a intentarlo
 EZOKeybinds._uiHooked    = false
@@ -77,7 +77,7 @@ local DEFAULT_BINDINGS = {
         addon = "EZOpvp",
         action = "EZOPVP_TOGGLE_PVP_MENU",
         keyboard = { key = "KEY_NUMPAD4", modifiers = { "KEY_SHIFT" } },
-        gamepad = { key = "KEY_GAMEPAD_BUTTON_1_HOLD", sameLayerOnly = true },
+        gamepad = { key = "KEY_GAMEPAD_BOTH_DPAD_RIGHT_BUTTON_2", sameLayerOnly = true },
     },
     {
         addon = "EZOTools",

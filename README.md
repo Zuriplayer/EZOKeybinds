@@ -35,7 +35,7 @@ The current declared defaults are:
 - EZOArmory: `Shift+NumPad 0` for its window.
 - EZOTools: `Shift+NumPad 1` / `HOLD X` for the command panel; `Shift+NumPad 2` / `HOLD Y` for the utility panel; `NumPad -` for Reload UI; and `NumPad +` for travel to the primary house.
 - EZOCombat: `Shift+NumPad 3` for its window.
-- EZOPVP: `Shift+NumPad 4` / `HOLD A` for its PvP menu.
+- EZOPVP: `Shift+NumPad 4` / `D-pad Right + Y` for its PvP menu.
 - EZOcamsens declares an action but currently has no default key.
 - EZOAlerts, EZOAuto, EZOChat, EZOCore, EZOCursor, EZOCustomSupportIcons, EZOGroupFrames, EZOhud, EZOKeybinds, EZOMetter, EZORaidPlanner, EZOta, and EZOTest do not declare their own persistent keybinding action. Any native keybind they display is owned by ESO or is only a temporary menu control.
 
@@ -45,9 +45,11 @@ The numeric keypad requires the keyboard to emit NumPad key codes. ESO's public 
 
 ## 🎮 Gamepad
 
-EZOKeybinds activates keyboard chording (Ctrl, Shift, Alt combinations) and displays gamepad bindings with ESO's native controller glyphs. Automatic startup registration of `HOLD A/X/Y` is disabled. The explicit, confirmed reset assigns those EZO gamepad defaults to slot 2 using ESO's manual per-layer behavior. If another action layer uses the same button, both actions may respond while both layers are active. The gamepad input system in ESO is separate and addons cannot register new two-button gamepad combinations.
+EZOKeybinds activates keyboard chording (Ctrl, Shift, Alt combinations) and displays gamepad bindings with ESO's native controller glyphs. Automatic startup registration of the former `HOLD A/X/Y` defaults is disabled. EZOPVP now owns the `D-pad Right + Y` default, and the explicit, confirmed EZOKeybinds reset restores the same composite key to slot 2. If another action layer uses the same combination, both actions may respond while both layers are active.
 
-If you use a controller and want chord-style combinations (e.g. LB+A), the recommended approach is to use **Steam Input** (free, built into Steam) or **reWASD** to map that combination to a regular keyboard key, then assign that key in the native Controls menu as you would any other keybind.
+Gamepad combinations are not arbitrary modifier chords. ESO exposes a fixed catalog of composite key constants that addons can bind as a single key code. In the current U51 API catalog, `KEY_GAMEPAD_BOTH_DPAD_RIGHT_BUTTON_2` (`D-pad Right + Y`) is the only verified D-pad-plus-face-button constant. Do not assume that every D-pad direction can be combined with X/Y/A/B. Future EZO defaults may use other native composites, such as the exposed shoulder-plus-face-button combinations, only after verifying the exact constant in the current client and checking that it does not conflict with another EZO action in the same layer.
+
+For a combination that ESO does not expose as a native composite key, use **Steam Input** (free, built into Steam) or **reWASD** to map it to a regular keyboard key, then assign that key in the native Controls menu as you would any other keybind.
 
 ## Requirements
 

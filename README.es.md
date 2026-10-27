@@ -35,7 +35,7 @@ Los valores predeterminados declarados actualmente son:
 - EZOArmory: `Mayusculas+NumPad 0` para su ventana.
 - EZOTools: `Mayusculas+NumPad 1` / `MANTENER X` para el panel de comandos; `Mayusculas+NumPad 2` / `MANTENER Y` para el panel de utilidades; `NumPad -` para recargar la interfaz; y `NumPad +` para viajar a la casa principal.
 - EZOCombat: `Mayusculas+NumPad 3` para su ventana.
-- EZOPVP: `Mayusculas+NumPad 4` / `MANTENER A` para su menu PvP.
+- EZOPVP: `Mayusculas+NumPad 4` / `Cruceta derecha + Y` para su menu PvP.
 - EZOcamsens declara una accion, pero actualmente no tiene tecla predeterminada.
 - EZOAlerts, EZOAuto, EZOChat, EZOCore, EZOCursor, EZOCustomSupportIcons, EZOGroupFrames, EZOhud, EZOKeybinds, EZOMetter, EZORaidPlanner, EZOta y EZOTest no declaran su propia accion persistente de keybind. Cualquier tecla nativa que muestran pertenece a ESO o es solo un control temporal de menu.
 
@@ -45,9 +45,11 @@ El teclado numerico necesita que el teclado emita codigos NumPad. La API Lua pub
 
 ## 🎮 Mando / Gamepad
 
-EZOKeybinds activa el chording de teclado (combinaciones con Ctrl, Shift, Alt) y muestra los bindings de gamepad con los glifos nativos de ESO. El registro automatico al iniciar de `MANTENER A/X/Y` esta desactivado. El reset explicito y confirmado asigna esos defaults EZO de gamepad al slot 2 siguiendo el comportamiento manual por capas de ESO. Si otra capa usa el mismo boton, ambas acciones pueden responder mientras las dos capas esten activas. El sistema de entrada del mando es independiente y los addons no pueden registrar combinaciones nuevas de dos botones.
+EZOKeybinds activa el chording de teclado (combinaciones con Ctrl, Shift, Alt) y muestra los bindings de gamepad con los glifos nativos de ESO. El registro automatico de los antiguos defaults `MANTENER A/X/Y` esta desactivado. EZOPVP declara ahora `Cruceta derecha + Y`, y el reset explicito y confirmado de EZOKeybinds restaura esa misma tecla compuesta en el slot 2. Si otra capa usa la misma combinacion, ambas acciones pueden responder mientras las dos capas esten activas.
 
-Si usas mando y quieres combinaciones tipo LB+A, la solucion recomendada es usar **Steam Input** (gratuito, integrado en Steam) o **reWASD** para mapear esa combinacion a una tecla normal del teclado, y despues asignar esa tecla en el menu nativo de Controles como cualquier otro keybind.
+Las combinaciones de gamepad no son modificadores arbitrarios. ESO expone un catalogo fijo de constantes compuestas que los addons pueden asignar como un unico codigo de tecla. En el catalogo actual de la API U51, `KEY_GAMEPAD_BOTH_DPAD_RIGHT_BUTTON_2` (`Cruceta derecha + Y`) es la unica constante verificada que combina cruceta y boton frontal. No se debe asumir que todas las direcciones de la cruceta pueden combinarse con X/Y/A/B. En el futuro, otros defaults EZO podran usar combinaciones nativas expuestas, como las de boton superior mas boton frontal, solo despues de verificar la constante exacta en el cliente vigente y comprobar que no entra en conflicto con otra accion EZO de la misma capa.
+
+Para una combinacion que ESO no exponga como tecla compuesta nativa, se puede usar **Steam Input** (gratuito, integrado en Steam) o **reWASD** para mapearla a una tecla normal del teclado, y despues asignar esa tecla en el menu nativo de Controles como cualquier otro keybind.
 
 ## Requisitos
 
